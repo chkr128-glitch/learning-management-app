@@ -6,51 +6,95 @@
     <title>志望大学合格最適化マネージャー</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class', // ダークモードをクラスで制御
+            theme: {
+                extend: {
+                    colors: {
+                        // カスタムカラーが必要な場合はここに追加
+                    },
+                    // 🌟 追加: マイクロインタラクション用のアニメーション定義
+                    animation: {
+                        'bounce-slight': 'bounce-slight 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) both',
+                        'pop-in': 'pop-in 0.2s ease-out',
+                    },
+                    keyframes: {
+                        'bounce-slight': {
+                            '0%': { transform: 'scale(1)' },
+                            '50%': { transform: 'scale(1.3) translateY(-10%)' },
+                            '100%': { transform: 'scale(1)' },
+                        },
+                        'pop-in': {
+                            '0%': { transform: 'scale(0.9)', opacity: '0.5' },
+                            '100%': { transform: 'scale(1)', opacity: '1' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- ダークモード初期化スクリプト (ちらつき防止のためhead内に配置) -->
+    <script>
+        function initTheme() {
+            if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        }
+        initTheme();
+    </script>
     <!-- FontAwesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- 🌟 追加: 紙吹雪アニメーション用ライブラリ -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
-        body { font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif; background-color: #f9fafb; }
+        body { font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif; }
         .view-section:not(.active) { display: none !important; }
         .view-section.active { display: block; }
-        #view-calendar.active { display: flex !important; }
-        .tab-btn.active { color: #2563eb; }
+        .tab-btn.active { color: #ec4899; } /* ピンク */
+        .dark .tab-btn.active { color: #f472b6; }
         .modal-overlay { display: none; }
         .modal-overlay.active { display: flex; }
         .modal-content { max-height: 90vh; overflow-y: auto; }
         .pb-safe { padding-bottom: env(safe-area-inset-bottom, 1rem); }
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
         .calendar-cell { min-height: 80px; }
+        
+        /* フォーム要素のデフォルトの枠線を消すなど微調整 */
+        select { appearance: none; -webkit-appearance: none; }
     </style>
 </head>
-<body class="text-gray-800 h-screen overflow-hidden flex flex-col">
+<body class="text-gray-800 dark:text-gray-100 h-screen overflow-hidden flex flex-col bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
 
     <!-- 🌟 ローディング画面 -->
-    <div id="loading-screen" class="absolute inset-0 bg-gray-50 z-50 flex flex-col items-center justify-center">
-        <i class="fas fa-spinner fa-spin text-4xl text-blue-500 mb-4"></i>
-        <p class="text-gray-500">読み込み中...</p>
+    <div id="loading-screen" class="absolute inset-0 bg-gray-50/90 dark:bg-gray-900/90 backdrop-blur-sm z-50 flex flex-col items-center justify-center transition-colors">
+        <i class="fas fa-spinner fa-spin text-5xl text-pink-500 mb-4"></i>
+        <p class="text-gray-500 dark:text-gray-400 font-medium tracking-wide">読み込み中...</p>
     </div>
 
     <!-- 🌟 認証（ログイン・新規登録）画面 -->
-    <div id="auth-screen" class="absolute inset-0 bg-gray-50 z-40 hidden flex-col items-center justify-center p-4">
-        <div class="bg-white p-6 rounded-xl shadow-lg w-full max-w-sm">
-            <h2 class="text-2xl font-bold text-center text-blue-700 mb-6" id="auth-title">ログイン</h2>
-            <div class="space-y-4">
+    <div id="auth-screen" class="absolute inset-0 bg-gray-50 dark:bg-gray-900 z-40 hidden flex-col items-center justify-center p-5 transition-colors">
+        <div class="bg-white dark:bg-gray-800 p-8 sm:p-10 rounded-3xl shadow-xl w-full max-w-sm border border-gray-100 dark:border-gray-700">
+            <h2 class="text-2xl font-black text-center text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-purple-600 mb-8 tracking-wide" id="auth-title">ログイン</h2>
+            <div class="space-y-5">
                 <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-1">メールアドレス</label>
-                    <input type="email" id="auth-email" class="w-full border p-2 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="email@example.com">
+                    <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 ml-1">メールアドレス</label>
+                    <input type="email" id="auth-email" class="w-full border-none bg-gray-100 dark:bg-gray-700 dark:text-white p-4 rounded-2xl focus:ring-2 focus:ring-pink-500 focus:bg-white dark:focus:bg-gray-600 transition-all outline-none" placeholder="email@example.com">
                 </div>
                 <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-1">パスワード</label>
-                    <input type="password" id="auth-password" class="w-full border p-2 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="6文字以上">
+                    <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 ml-1">パスワード</label>
+                    <input type="password" id="auth-password" class="w-full border-none bg-gray-100 dark:bg-gray-700 dark:text-white p-4 rounded-2xl focus:ring-2 focus:ring-pink-500 focus:bg-white dark:focus:bg-gray-600 transition-all outline-none" placeholder="6文字以上">
                 </div>
-                <button id="auth-btn-action" onclick="performAuthAction()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition shadow-md">ログイン</button>
+                <button id="auth-btn-action" onclick="performAuthAction()" class="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold py-4 rounded-full mt-2 hover:opacity-90 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">ログイン</button>
             </div>
-            <div class="mt-4 text-center">
-                <button onclick="toggleAuthMode()" id="auth-toggle-btn" class="text-xs text-blue-500 hover:underline">アカウントをお持ちでない方はこちら（新規登録）</button>
+            <div class="mt-6 text-center">
+                <button onclick="toggleAuthMode()" id="auth-toggle-btn" class="text-xs text-pink-500 dark:text-pink-400 hover:text-pink-600 font-medium transition-colors">アカウントをお持ちでない方はこちら（新規登録）</button>
             </div>
-            <p id="auth-error-msg" class="text-red-500 text-xs text-center mt-3 min-h-[1rem]"></p>
+            <p id="auth-error-msg" class="text-red-500 text-xs font-medium text-center mt-4 min-h-[1rem]"></p>
         </div>
     </div>
 
@@ -58,114 +102,129 @@
     <div id="main-app" class="flex-1 flex-col hidden w-full h-full relative">
         
         <!-- Header -->
-        <header class="bg-blue-700 text-white p-3 shadow-md fixed w-full z-20 top-0 flex justify-between items-center h-14">
-            <div><h1 class="text-sm font-bold opacity-80">志望校合格マネージャー</h1></div>
-            <div class="flex space-x-3 text-xs text-right">
-                <div><p class="opacity-70">共通テストまで</p><p class="font-bold text-lg"><span id="cd-common">--</span> <span class="text-xs font-normal">日</span></p></div>
-                <div><p class="opacity-70">2次試験まで</p><p class="font-bold text-lg text-yellow-300"><span id="cd-second">--</span> <span class="text-xs font-normal text-white">日</span></p></div>
+        <header class="bg-gradient-to-r from-red-500 via-pink-500 to-purple-600 text-white p-4 shadow-md fixed w-full z-20 top-0 flex justify-between items-center h-16 rounded-b-3xl transition-colors">
+            <div class="ml-2 flex items-center">
+                <h1 class="text-sm font-black tracking-wider opacity-90">志望校合格マネージャー</h1>
+                <!-- テーマ切り替えボタン -->
+                <button onclick="toggleDarkMode()" class="ml-3 w-8 h-8 flex items-center justify-center bg-white/20 rounded-full hover:bg-white/30 transition-colors focus:outline-none">
+                    <i id="theme-icon" class="fas fa-moon text-xs"></i>
+                </button>
+            </div>
+            <div class="flex space-x-4 text-xs text-right mr-2">
+                <div><p class="opacity-80 font-medium">共通テスト</p><p class="font-black text-xl leading-tight"><span id="cd-common">--</span> <span class="text-xs font-medium">日</span></p></div>
+                <div><p class="opacity-80 font-medium">2次試験</p><p class="font-black text-xl leading-tight text-yellow-200"><span id="cd-second">--</span> <span class="text-xs font-medium text-white">日</span></p></div>
             </div>
         </header>
 
         <!-- Main Content Area -->
-        <main class="flex-1 overflow-y-auto mt-14 mb-16 pb-6 relative w-full max-w-lg mx-auto bg-gray-50 shadow-inner" id="main-content">
+        <main class="flex-1 overflow-y-auto mt-20 mb-24 pb-6 relative w-full max-w-lg mx-auto" id="main-content">
             
             <!-- Dashboard View -->
-            <div id="view-dashboard" class="view-section active p-4">
-                <h2 id="current-date-display" class="text-xl font-bold text-gray-800 mb-4">今日のタスク</h2>
-                <div class="mb-5 bg-gradient-to-r from-blue-600 to-indigo-600 p-4 rounded-xl shadow-md text-white">
-                    <p class="text-sm opacity-80">本日の残り推定学習時間</p>
-                    <p class="text-3xl font-bold mt-1"><span id="remaining-time">0</span> <span class="text-base font-normal">分</span></p>
+            <div id="view-dashboard" class="view-section active p-5">
+                <h2 id="current-date-display" class="text-2xl font-black text-gray-800 dark:text-white mb-5 ml-1 tracking-tight transition-colors">今日のタスク</h2>
+                
+                <!-- 🌟 追加: カード表示時にポンッと出るアニメーション (animate-pop-in) -->
+                <div class="mb-8 bg-gradient-to-br from-red-400 via-pink-500 to-purple-500 p-6 rounded-3xl shadow-[0_10px_25px_rgba(236,72,153,0.3)] dark:shadow-[0_10px_25px_rgba(0,0,0,0.5)] text-white relative overflow-hidden animate-pop-in">
+                    <div class="absolute -right-4 -top-4 w-24 h-24 bg-white opacity-10 rounded-full"></div>
+                    <div class="absolute -bottom-8 -right-8 w-32 h-32 bg-white opacity-10 rounded-full"></div>
+                    <p class="text-sm font-medium opacity-90 relative z-10">本日の残り推定学習時間</p>
+                    <p class="text-4xl font-black mt-2 relative z-10"><span id="remaining-time">0</span> <span class="text-lg font-bold">分</span></p>
                 </div>
-                <div class="mb-6">
-                    <h3 class="font-bold text-gray-700 mb-3 flex justify-between items-end border-b pb-1">
-                        未完了のタスク <span class="bg-gray-200 text-gray-700 text-xs px-2 py-1 rounded-full" id="incomplete-count">0</span>
+
+                <div class="mb-8">
+                    <h3 class="font-bold text-gray-700 dark:text-gray-300 mb-4 flex justify-between items-end pb-2 ml-1 border-b border-gray-200 dark:border-gray-700 transition-colors">
+                        未完了のタスク <span class="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs px-3 py-1 rounded-full font-medium" id="incomplete-count">0</span>
                     </h3>
                     <div id="incomplete-tasks" class="space-y-3"></div>
                 </div>
+
                 <div>
-                    <h3 class="font-bold text-gray-700 mb-3 flex justify-between items-end border-b pb-1">
-                        完了済みのタスク <span class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full" id="completed-count">0</span>
+                    <h3 class="font-bold text-gray-700 dark:text-gray-300 mb-4 flex justify-between items-end pb-2 ml-1 border-b border-gray-200 dark:border-gray-700 transition-colors">
+                        完了済みのタスク <span class="bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400 text-xs px-3 py-1 rounded-full font-medium" id="completed-count">0</span>
                     </h3>
-                    <div id="completed-tasks" class="space-y-3 opacity-70"></div>
+                    <div id="completed-tasks" class="space-y-3 opacity-80"></div>
                 </div>
-                <button onclick="openAddTaskModal()" class="fixed bottom-20 right-4 lg:right-[calc(50%-15rem)] w-14 h-14 bg-blue-600 text-white rounded-full shadow-lg flex items-center justify-center text-xl hover:bg-blue-700 transition transform hover:scale-105 z-10">
+
+                <!-- 浮かぶ追加ボタン (FAB) -->
+                <button onclick="openAddTaskModal()" class="fixed bottom-24 right-5 lg:right-[calc(50%-14rem)] w-16 h-16 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-full shadow-[0_8px_20px_rgba(236,72,153,0.4)] dark:shadow-[0_8px_20px_rgba(0,0,0,0.5)] flex items-center justify-center text-2xl hover:opacity-90 transition-all transform hover:scale-105 hover:-translate-y-1 z-10">
                     <i class="fas fa-plus"></i>
                 </button>
             </div>
 
             <!-- Calendar View -->
-            <div id="view-calendar" class="view-section p-4 h-full flex-col">
-                <div class="flex justify-between items-center mb-4 bg-white p-3 rounded-xl shadow-sm flex-shrink-0">
-                    <button onclick="changeMonth(-1)" class="p-2 text-gray-500"><i class="fas fa-chevron-left"></i></button>
-                    <h2 id="calendar-month-display" class="text-lg font-bold">年月</h2>
-                    <button onclick="changeMonth(1)" class="p-2 text-gray-500"><i class="fas fa-chevron-right"></i></button>
+            <div id="view-calendar" class="view-section p-5">
+                <div class="flex justify-between items-center mb-5 bg-white dark:bg-gray-800 p-4 rounded-3xl shadow-sm transition-colors border border-gray-100 dark:border-gray-700">
+                    <button onclick="changeMonth(-1)" class="p-2 w-10 h-10 flex items-center justify-center rounded-full bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 transition"><i class="fas fa-chevron-left"></i></button>
+                    <h2 id="calendar-month-display" class="text-xl font-bold tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-500">年月</h2>
+                    <button onclick="changeMonth(1)" class="p-2 w-10 h-10 flex items-center justify-center rounded-full bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 transition"><i class="fas fa-chevron-right"></i></button>
                 </div>
-                <div class="bg-white rounded-xl shadow-sm flex-shrink-0 overflow-hidden flex flex-col mb-4">
-                    <div class="grid grid-cols-7 text-center text-xs font-bold text-gray-500 py-2 border-b">
-                        <div class="text-red-500">日</div><div>月</div><div>火</div><div>水</div><div>木</div><div>金</div><div class="text-blue-500">土</div>
+                <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm mb-6 p-2 transition-colors border border-gray-100 dark:border-gray-700">
+                    <div class="grid grid-cols-7 text-center text-xs font-bold text-gray-400 dark:text-gray-500 py-3 mb-1">
+                        <div class="text-red-400 dark:text-red-500">日</div><div>月</div><div>火</div><div>水</div><div>木</div><div>金</div><div class="text-blue-400 dark:text-blue-500">土</div>
                     </div>
-                    <div id="calendar-grid" class="calendar-grid bg-gray-100 p-1"></div>
+                    <div id="calendar-grid" class="calendar-grid p-1"></div>
                 </div>
-                <div class="flex-1 min-h-0 flex flex-col">
-                    <h3 id="calendar-selected-date-display" class="font-bold text-gray-700 mb-2 flex justify-between items-end pb-1 border-b flex-shrink-0">
-                        選択日のタスク <span class="bg-gray-200 text-gray-700 text-xs px-2 py-1 rounded-full" id="calendar-task-count">0</span>
+                <div>
+                    <h3 id="calendar-selected-date-display" class="font-bold text-gray-700 dark:text-gray-300 mb-3 flex justify-between items-end pb-2 border-b border-gray-200 dark:border-gray-700 ml-1 transition-colors">
+                        選択日のタスク <span class="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs px-3 py-1 rounded-full font-medium" id="calendar-task-count">0</span>
                     </h3>
-                    <div id="calendar-tasks-container" class="space-y-3 overflow-y-auto flex-1 pb-10"></div>
+                    <div id="calendar-tasks-container" class="space-y-3 pb-10 px-1"></div>
                 </div>
             </div>
 
             <!-- Analytics View -->
-            <div id="view-analytics" class="view-section p-4">
-                <h2 class="text-xl font-bold text-gray-800 mb-4">学習分析</h2>
-                <div class="bg-white p-4 rounded-xl shadow-sm mb-4">
-                    <h3 class="text-sm font-bold text-gray-600 mb-4 text-center">科目別 累計学習時間</h3>
+            <div id="view-analytics" class="view-section p-5">
+                <h2 class="text-2xl font-black text-gray-800 dark:text-white mb-6 ml-1 tracking-tight transition-colors">学習分析</h2>
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm mb-6 transition-colors border border-gray-100 dark:border-gray-700">
+                    <h3 class="text-sm font-bold text-pink-600 dark:text-pink-400 mb-5 text-center bg-pink-50 dark:bg-pink-900/30 py-2 rounded-2xl inline-block px-6 mx-auto block w-max">科目別 累計学習時間</h3>
                     <div class="relative h-64 w-full"><canvas id="chart-subject"></canvas></div>
                 </div>
-                <div class="bg-white p-4 rounded-xl shadow-sm mb-4">
-                    <h3 class="text-sm font-bold text-gray-600 mb-4 text-center">理解度（定着度）分布</h3>
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm mb-6 transition-colors border border-gray-100 dark:border-gray-700">
+                    <h3 class="text-sm font-bold text-purple-600 dark:text-purple-400 mb-5 text-center bg-purple-50 dark:bg-purple-900/30 py-2 rounded-2xl inline-block px-6 mx-auto block w-max">理解度（定着度）分布</h3>
                     <div class="relative h-64 w-full"><canvas id="chart-evaluation"></canvas></div>
                 </div>
             </div>
 
-            <!-- Settings View (ログアウトボタン追加) -->
-            <div id="view-settings" class="view-section p-4">
-                <h2 class="text-xl font-bold text-gray-800 mb-4">設定・管理機能</h2>
-                <div class="bg-white rounded-xl shadow-sm p-4 mb-4">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="font-bold text-gray-700">固定ルーティン</h3>
-                        <button onclick="openAddRoutineModal()" class="text-sm bg-blue-100 text-blue-700 px-3 py-1 rounded-full"><i class="fas fa-plus mr-1"></i>追加</button>
+            <!-- Settings View -->
+            <div id="view-settings" class="view-section p-5">
+                <h2 class="text-2xl font-black text-gray-800 dark:text-white mb-6 ml-1 tracking-tight transition-colors">設定・管理</h2>
+                
+                <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm p-6 mb-6 transition-colors border border-gray-100 dark:border-gray-700">
+                    <div class="flex justify-between items-center mb-5">
+                        <h3 class="font-bold text-gray-700 dark:text-gray-300 flex items-center"><i class="fas fa-list-check text-pink-500 mr-2"></i>固定ルーティン</h3>
+                        <button onclick="openAddRoutineModal()" class="text-sm bg-pink-50 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400 px-4 py-1.5 rounded-full font-bold hover:bg-pink-100 dark:hover:bg-pink-900/50 transition"><i class="fas fa-plus mr-1"></i>追加</button>
                     </div>
-                    <ul id="routine-list" class="space-y-2"></ul>
+                    <ul id="routine-list" class="space-y-3"></ul>
                 </div>
                 
-                <!-- 🌟 アカウント管理セクション -->
-                <div class="bg-white rounded-xl shadow-sm p-4 mb-4">
-                    <h3 class="font-bold text-gray-700 mb-4">アカウント管理</h3>
-                    <p class="text-xs text-gray-500 mb-1">ログイン中のユーザーID:</p>
-                    <p class="text-xs font-mono bg-gray-100 p-2 rounded mb-4 break-all text-gray-600" id="display-user-id">---</p>
-                    <button onclick="handleLogout()" class="w-full bg-red-50 text-red-600 font-bold py-2.5 rounded-lg border border-red-200 hover:bg-red-100 transition">ログアウト</button>
+                <!-- アカウント管理セクション -->
+                <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm p-6 mb-6 border border-gray-100 dark:border-gray-700 transition-colors">
+                    <h3 class="font-bold text-gray-700 dark:text-gray-300 mb-4 flex items-center"><i class="fas fa-user-circle text-purple-500 mr-2"></i>アカウント管理</h3>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-2 ml-1 font-medium">ログイン中のユーザーID:</p>
+                    <p class="text-xs font-mono bg-gray-50 dark:bg-gray-700 p-3 rounded-2xl mb-6 break-all text-gray-600 dark:text-gray-300 border border-gray-100 dark:border-gray-600" id="display-user-id">---</p>
+                    <button onclick="handleLogout()" class="w-full bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 font-bold py-3 rounded-full hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors border border-transparent dark:border-red-900/30">ログアウト</button>
                 </div>
 
-                <div class="mt-8 text-center text-xs text-gray-400">
-                    <p>Environment: <span id="env-status" class="font-bold"></span></p>
+                <div class="mt-8 text-center text-[10px] text-gray-400 font-medium">
+                    <p>Environment: <span id="env-status" class="font-bold text-gray-500 dark:text-gray-400"></span></p>
                 </div>
             </div>
         </main>
 
-        <!-- Bottom Navigation -->
-        <nav class="bg-white border-t border-gray-200 fixed bottom-0 w-full z-20 pb-safe shadow-[0_-2px_10px_rgba(0,0,0,0.05)] flex">
-            <div class="flex justify-around w-full max-w-lg mx-auto">
-                <button onclick="switchView('dashboard')" id="nav-dashboard" class="tab-btn active flex flex-col items-center py-3 w-1/4 text-gray-400 hover:text-blue-500">
-                    <i class="fas fa-list-check text-xl mb-1"></i><span class="text-[10px] font-medium">今日</span>
+        <!-- Bottom Navigation (すりガラス＆丸み) -->
+        <nav class="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-t border-gray-100 dark:border-gray-800 fixed bottom-0 w-full z-20 pb-safe shadow-[0_-10px_30px_rgba(0,0,0,0.05)] flex rounded-t-3xl transition-colors">
+            <div class="flex justify-around w-full max-w-lg mx-auto px-2">
+                <button onclick="switchView('dashboard')" id="nav-dashboard" class="tab-btn active flex flex-col items-center py-3.5 w-1/4 text-gray-400 dark:text-gray-500 hover:text-pink-500 dark:hover:text-pink-400 transition-colors">
+                    <i class="fas fa-list-check text-xl mb-1.5 transition-transform duration-200"></i><span class="text-[10px] font-bold tracking-wider">今日</span>
                 </button>
-                <button onclick="switchView('calendar')" id="nav-calendar" class="tab-btn flex flex-col items-center py-3 w-1/4 text-gray-400 hover:text-blue-500">
-                    <i class="far fa-calendar-alt text-xl mb-1"></i><span class="text-[10px] font-medium">カレンダー</span>
+                <button onclick="switchView('calendar')" id="nav-calendar" class="tab-btn flex flex-col items-center py-3.5 w-1/4 text-gray-400 dark:text-gray-500 hover:text-pink-500 dark:hover:text-pink-400 transition-colors">
+                    <i class="far fa-calendar-alt text-xl mb-1.5 transition-transform duration-200"></i><span class="text-[10px] font-bold tracking-wider">カレンダー</span>
                 </button>
-                <button onclick="switchView('analytics')" id="nav-analytics" class="tab-btn flex flex-col items-center py-3 w-1/4 text-gray-400 hover:text-blue-500">
-                    <i class="fas fa-chart-pie text-xl mb-1"></i><span class="text-[10px] font-medium">分析</span>
+                <button onclick="switchView('analytics')" id="nav-analytics" class="tab-btn flex flex-col items-center py-3.5 w-1/4 text-gray-400 dark:text-gray-500 hover:text-pink-500 dark:hover:text-pink-400 transition-colors">
+                    <i class="fas fa-chart-pie text-xl mb-1.5 transition-transform duration-200"></i><span class="text-[10px] font-bold tracking-wider">分析</span>
                 </button>
-                <button onclick="switchView('settings')" id="nav-settings" class="tab-btn flex flex-col items-center py-3 w-1/4 text-gray-400 hover:text-blue-500">
-                    <i class="fas fa-cog text-xl mb-1"></i><span class="text-[10px] font-medium">設定</span>
+                <button onclick="switchView('settings')" id="nav-settings" class="tab-btn flex flex-col items-center py-3.5 w-1/4 text-gray-400 dark:text-gray-500 hover:text-pink-500 dark:hover:text-pink-400 transition-colors">
+                    <i class="fas fa-cog text-xl mb-1.5 transition-transform duration-200"></i><span class="text-[10px] font-bold tracking-wider">設定</span>
                 </button>
             </div>
         </nav>
@@ -173,95 +232,130 @@
 
     <!-- MODALS -->
     <!-- Add Task Modal -->
-    <div id="modal-add-task" class="modal-overlay fixed inset-0 bg-black bg-opacity-50 z-50 justify-center items-end sm:items-center" onclick="if(event.target===this) closeModal('modal-add-task')">
-        <div class="modal-content bg-white w-full sm:max-w-md sm:rounded-xl rounded-t-xl p-5 transform transition-transform duration-300 translate-y-0 shadow-2xl">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-bold">新規タスク追加</h3>
-                <button onclick="closeModal('modal-add-task')" class="text-gray-400 hover:text-gray-700 text-xl"><i class="fas fa-times"></i></button>
+    <div id="modal-add-task" class="modal-overlay fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 justify-center items-end sm:items-center" onclick="if(event.target===this) closeModal('modal-add-task')">
+        <div class="modal-content bg-white dark:bg-gray-800 w-full sm:max-w-md sm:rounded-3xl rounded-t-3xl p-6 sm:p-8 transform transition-transform duration-300 translate-y-0 shadow-2xl border border-gray-100 dark:border-gray-700">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-gray-800 dark:text-white tracking-wide">新規タスク追加</h3>
+                <button onclick="closeModal('modal-add-task')" class="text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"><i class="fas fa-times"></i></button>
             </div>
-            <div class="space-y-4">
+            <div class="space-y-5">
                 <div>
-                    <label class="block text-xs font-bold text-gray-600 mb-1">タスク名</label>
-                    <input type="text" id="input-task-title" class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="例: 青チャート 数学II B 第1章">
+                    <label class="block text-xs font-bold text-gray-600 dark:text-gray-300 mb-2 ml-1">タスク名</label>
+                    <input type="text" id="input-task-title" class="w-full border-none bg-gray-100 dark:bg-gray-700 dark:text-white p-4 rounded-2xl focus:ring-2 focus:ring-pink-500 focus:bg-white dark:focus:bg-gray-600 outline-none transition-all" placeholder="例: 青チャート 数学II B 第1章">
                 </div>
-                <div class="flex space-x-3">
-                    <div class="w-1/2">
-                        <label class="block text-xs font-bold text-gray-600 mb-1">科目</label>
-                        <select id="input-task-subject" class="w-full border border-gray-300 rounded-lg p-2"></select>
+                <div class="flex space-x-4">
+                    <div class="w-1/2 relative">
+                        <label class="block text-xs font-bold text-gray-600 dark:text-gray-300 mb-2 ml-1">科目</label>
+                        <select id="input-task-subject" class="w-full border-none bg-gray-100 dark:bg-gray-700 dark:text-white p-4 rounded-2xl focus:ring-2 focus:ring-pink-500 focus:bg-white dark:focus:bg-gray-600 outline-none transition-all appearance-none font-medium"></select>
+                        <i class="fas fa-chevron-down absolute right-4 top-11 text-gray-400 pointer-events-none text-xs"></i>
                     </div>
                     <div class="w-1/2">
-                        <label class="block text-xs font-bold text-gray-600 mb-1">予定時間 (分)</label>
-                        <input type="number" id="input-task-time" class="w-full border border-gray-300 rounded-lg p-2" placeholder="60">
+                        <label class="block text-xs font-bold text-gray-600 dark:text-gray-300 mb-2 ml-1">予定時間 (分)</label>
+                        <input type="number" id="input-task-time" class="w-full border-none bg-gray-100 dark:bg-gray-700 dark:text-white p-4 rounded-2xl focus:ring-2 focus:ring-pink-500 focus:bg-white dark:focus:bg-gray-600 outline-none transition-all" placeholder="60">
                     </div>
                 </div>
-                <button onclick="saveNewTask()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg mt-4 hover:bg-blue-700">追加する</button>
+                <button onclick="saveNewTask()" class="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold py-4 rounded-full mt-4 hover:opacity-90 transition-all shadow-lg transform hover:-translate-y-0.5">追加する</button>
             </div>
         </div>
     </div>
 
     <!-- Task Detail Modal -->
-    <div id="modal-task-detail" class="modal-overlay fixed inset-0 bg-black bg-opacity-50 z-50 justify-center items-center" onclick="if(event.target===this) closeModal('modal-task-detail')">
-        <div class="modal-content bg-white w-11/12 max-w-md rounded-xl p-5 shadow-2xl relative">
-            <button onclick="closeModal('modal-task-detail')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-700"><i class="fas fa-times text-xl"></i></button>
-            <h3 class="text-lg font-bold mb-1" id="detail-title">タスク名</h3>
-            <p class="text-xs text-gray-500 mb-5"><span id="detail-subject" class="px-2 py-1 rounded bg-gray-100 mr-2">科目</span> 予定: <span id="detail-est-time"></span>分</p>
+    <div id="modal-task-detail" class="modal-overlay fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 justify-center items-center" onclick="if(event.target===this) closeModal('modal-task-detail')">
+        <div class="modal-content bg-white dark:bg-gray-800 w-11/12 max-w-md rounded-3xl p-6 sm:p-8 transform transition-transform duration-300 translate-y-0 shadow-2xl relative border border-gray-100 dark:border-gray-700">
+            <button onclick="closeModal('modal-task-detail')" class="absolute top-6 right-6 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"><i class="fas fa-times"></i></button>
+            
+            <h3 class="text-xl font-black mb-2 text-gray-800 dark:text-white pr-10" id="detail-title">タスク名</h3>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mb-6 font-medium flex items-center">
+                <span id="detail-subject" class="px-2.5 py-1 rounded-full bg-gray-100 dark:bg-gray-700 mr-2">科目</span>
+                予定: <span id="detail-est-time" class="mx-1 font-bold text-gray-700 dark:text-gray-300"></span>分
+            </p>
             <input type="hidden" id="detail-task-id">
-            <div class="space-y-4">
+            
+            <div class="space-y-6">
                 <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-1">実際の学習時間 (分)</label>
-                    <input type="number" id="detail-actual-time" class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 ml-1">実際の学習時間 (分)</label>
+                    <input type="number" id="detail-actual-time" class="w-full border-none bg-gray-100 dark:bg-gray-700 dark:text-white p-4 rounded-2xl focus:ring-2 focus:ring-pink-500 focus:bg-white dark:focus:bg-gray-600 outline-none transition-all font-bold text-lg text-center">
                 </div>
+                
+                <!-- 🌟 変更: 評価セクションを「全体」と「個別詳細」に切り替え可能に -->
                 <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-1">定着度評価</label>
-                    <div class="grid grid-cols-2 gap-2 text-sm">
-                        <label class="border rounded-lg p-2 flex items-center cursor-pointer hover:bg-blue-50 transition-colors"><input type="radio" name="evaluation" value="A" class="mr-2 text-blue-600"> A: 完璧/初見正答</label>
-                        <label class="border rounded-lg p-2 flex items-center cursor-pointer hover:bg-blue-50 transition-colors"><input type="radio" name="evaluation" value="B" class="mr-2 text-blue-600"> B: やや不安/要復習</label>
-                        <label class="border rounded-lg p-2 flex items-center cursor-pointer hover:bg-blue-50 transition-colors"><input type="radio" name="evaluation" value="C" class="mr-2 text-blue-600"> C: 解説見て理解</label>
-                        <label class="border rounded-lg p-2 flex items-center cursor-pointer hover:bg-blue-50 transition-colors"><input type="radio" name="evaluation" value="D" class="mr-2 text-blue-600"> D: 歯が立たず</label>
+                    <div class="flex justify-between items-center mb-2 ml-1">
+                        <label class="block text-sm font-bold text-gray-700 dark:text-gray-300">定着度評価</label>
+                        <button onclick="toggleSubEvaluations()" id="toggle-sub-eval-btn" class="text-xs text-pink-500 dark:text-pink-400 hover:text-pink-600 font-bold transition-colors">
+                            問題ごとに細かく評価する <i class="fas fa-list-ul ml-1"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- 全体評価 -->
+                    <div id="main-evaluation-section" class="grid grid-cols-2 gap-3 text-sm font-medium transition-all duration-300">
+                        <label class="border-2 border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50 rounded-2xl p-3 flex items-center cursor-pointer hover:bg-pink-50 dark:hover:bg-gray-700 hover:border-pink-200 dark:hover:border-pink-500 transition-colors dark:text-gray-200">
+                            <input type="radio" name="evaluation" value="A" class="mr-2 text-pink-500 focus:ring-pink-500 w-4 h-4 bg-white dark:bg-gray-600 border-gray-300 dark:border-gray-500"> A: 完璧
+                        </label>
+                        <label class="border-2 border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50 rounded-2xl p-3 flex items-center cursor-pointer hover:bg-pink-50 dark:hover:bg-gray-700 hover:border-pink-200 dark:hover:border-pink-500 transition-colors dark:text-gray-200">
+                            <input type="radio" name="evaluation" value="B" class="mr-2 text-pink-500 focus:ring-pink-500 w-4 h-4 bg-white dark:bg-gray-600 border-gray-300 dark:border-gray-500"> B: やや不安
+                        </label>
+                        <label class="border-2 border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50 rounded-2xl p-3 flex items-center cursor-pointer hover:bg-pink-50 dark:hover:bg-gray-700 hover:border-pink-200 dark:hover:border-pink-500 transition-colors dark:text-gray-200">
+                            <input type="radio" name="evaluation" value="C" class="mr-2 text-pink-500 focus:ring-pink-500 w-4 h-4 bg-white dark:bg-gray-600 border-gray-300 dark:border-gray-500"> C: 要復習
+                        </label>
+                        <label class="border-2 border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50 rounded-2xl p-3 flex items-center cursor-pointer hover:bg-pink-50 dark:hover:bg-gray-700 hover:border-pink-200 dark:hover:border-pink-500 transition-colors dark:text-gray-200">
+                            <input type="radio" name="evaluation" value="D" class="mr-2 text-pink-500 focus:ring-pink-500 w-4 h-4 bg-white dark:bg-gray-600 border-gray-300 dark:border-gray-500"> D: 歯が立たず
+                        </label>
+                    </div>
+
+                    <!-- 個別（問題ごと）評価コンテナ -->
+                    <div id="sub-evaluations-section" class="hidden mt-3 bg-gray-50 dark:bg-gray-800 p-4 rounded-2xl border border-gray-200 dark:border-gray-700">
+                        <p class="text-[11px] text-gray-500 dark:text-gray-400 mb-3 font-medium leading-tight">問題名（例: 問1, p.14）と評価を入力してください。<br>評価に応じて個別の復習タスクが生成されます。</p>
+                        <div id="sub-evaluations-list" class="space-y-2 mb-3">
+                            <!-- JSで動的に追加 -->
+                        </div>
+                        <button onclick="addSubEvaluation()" class="text-xs text-purple-600 hover:text-purple-700 dark:text-purple-400 font-bold flex items-center justify-center w-full py-2.5 bg-purple-100 dark:bg-purple-900/40 rounded-xl transition-colors">
+                            <i class="fas fa-plus mr-1"></i> 問題を追加する
+                        </button>
                     </div>
                 </div>
+
                 <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-1">学習メモ</label>
-                    <textarea id="detail-note" class="w-full border border-gray-300 rounded-lg p-2 h-20" placeholder="気づきや弱点などをメモ..."></textarea>
+                    <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 ml-1">学習メモ</label>
+                    <textarea id="detail-note" class="w-full border-none bg-gray-100 dark:bg-gray-700 dark:text-white p-4 rounded-2xl h-24 focus:ring-2 focus:ring-pink-500 focus:bg-white dark:focus:bg-gray-600 outline-none transition-all resize-none leading-relaxed" placeholder="気づきや弱点などをメモ..."></textarea>
                 </div>
                 <div class="flex space-x-3 pt-2">
-                    <button onclick="deleteTask()" class="w-1/4 bg-red-100 text-red-600 font-bold py-3 rounded-lg"><i class="fas fa-trash"></i></button>
-                    <button onclick="saveTaskDetail()" class="w-3/4 bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700">完了して記録する</button>
+                    <button onclick="deleteTask()" class="w-16 flex-shrink-0 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 font-bold rounded-2xl hover:bg-red-100 dark:hover:bg-red-900/50 transition-colors border border-transparent dark:border-red-900/50"><i class="fas fa-trash"></i></button>
+                    <button onclick="saveTaskDetail()" class="flex-grow bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold py-4 rounded-2xl hover:opacity-90 transition-all shadow-md transform hover:-translate-y-0.5">完了して記録する</button>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Add Routine Modal -->
-    <div id="modal-add-routine" class="modal-overlay fixed inset-0 bg-black bg-opacity-50 z-50 justify-center items-center" onclick="if(event.target===this) closeModal('modal-add-routine')">
-        <div class="modal-content bg-white w-11/12 max-w-md rounded-xl p-5 shadow-2xl">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-bold">固定ルーティン追加</h3>
-                <button onclick="closeModal('modal-add-routine')" class="text-gray-400"><i class="fas fa-times"></i></button>
+    <div id="modal-add-routine" class="modal-overlay fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 justify-center items-end sm:items-center" onclick="if(event.target===this) closeModal('modal-add-routine')">
+        <div class="modal-content bg-white dark:bg-gray-800 w-full sm:max-w-md sm:rounded-3xl rounded-t-3xl p-6 sm:p-8 transform transition-transform duration-300 translate-y-0 shadow-2xl border border-gray-100 dark:border-gray-700">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-gray-800 dark:text-white tracking-wide">固定ルーティン追加</h3>
+                <button onclick="closeModal('modal-add-routine')" class="text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"><i class="fas fa-times"></i></button>
             </div>
-            <div class="space-y-4">
+            <div class="space-y-5">
                 <div>
-                    <label class="block text-xs font-bold text-gray-600 mb-1">ルーティン名</label>
-                    <input type="text" id="input-routine-title" class="w-full border p-2 rounded-lg" placeholder="例: ターゲット1900">
+                    <label class="block text-xs font-bold text-gray-600 dark:text-gray-300 mb-2 ml-1">ルーティン名</label>
+                    <input type="text" id="input-routine-title" class="w-full border-none bg-gray-100 dark:bg-gray-700 dark:text-white p-4 rounded-2xl focus:ring-2 focus:ring-purple-500 focus:bg-white dark:focus:bg-gray-600 outline-none transition-all" placeholder="例: ターゲット1900">
                 </div>
-                <div class="flex space-x-3">
-                    <div class="w-1/2">
-                        <label class="block text-xs font-bold text-gray-600 mb-1">科目</label>
-                        <select id="input-routine-subject" class="w-full border p-2 rounded-lg"></select>
+                <div class="flex space-x-4">
+                    <div class="w-1/2 relative">
+                        <label class="block text-xs font-bold text-gray-600 dark:text-gray-300 mb-2 ml-1">科目</label>
+                        <select id="input-routine-subject" class="w-full border-none bg-gray-100 dark:bg-gray-700 dark:text-white p-4 rounded-2xl focus:ring-2 focus:ring-purple-500 focus:bg-white dark:focus:bg-gray-600 outline-none transition-all appearance-none font-medium"></select>
+                        <i class="fas fa-chevron-down absolute right-4 top-11 text-gray-400 pointer-events-none text-xs"></i>
                     </div>
                     <div class="w-1/2">
-                        <label class="block text-xs font-bold text-gray-600 mb-1">予定時間(分)</label>
-                        <input type="number" id="input-routine-time" class="w-full border p-2 rounded-lg" placeholder="15">
+                        <label class="block text-xs font-bold text-gray-600 dark:text-gray-300 mb-2 ml-1">予定時間(分)</label>
+                        <input type="number" id="input-routine-time" class="w-full border-none bg-gray-100 dark:bg-gray-700 dark:text-white p-4 rounded-2xl focus:ring-2 focus:ring-purple-500 focus:bg-white dark:focus:bg-gray-600 outline-none transition-all" placeholder="15">
                     </div>
                 </div>
-                <button onclick="saveNewRoutine()" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-lg mt-4">追加する</button>
+                <button onclick="saveNewRoutine()" class="w-full bg-purple-600 text-white font-bold py-4 rounded-full mt-4 hover:bg-purple-700 transition-all shadow-lg transform hover:-translate-y-0.5">追加する</button>
             </div>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        // 🌟 signInWithEmailAndPassword (ログイン), createUserWithEmailAndPassword (新規登録), signOut (ログアウト) を追加
         import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, doc, setDoc, getDoc, getDocs, onSnapshot, addDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
@@ -279,7 +373,6 @@
 
         const isPreviewEnv = typeof __firebase_config !== 'undefined';
         const useMyConfig = MY_FIREBASE_CONFIG.apiKey !== "";
-        // 🌟 設定が入力されている場合は、AI環境でもご自身の本番Firebaseを使うように設定
         const finalConfig = (isPreviewEnv && !useMyConfig) ? JSON.parse(__firebase_config) : MY_FIREBASE_CONFIG;
         const isUsingPreviewDB = isPreviewEnv && !useMyConfig;
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
@@ -288,7 +381,6 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Firestoreのパス生成 (本番Firebaseに直接接続)
         function getCollectionRef(collectionName) {
             if (isUsingPreviewDB) return collection(db, 'artifacts', appId, 'users', currentUser.uid, collectionName);
             return collection(db, 'users', currentUser.uid, collectionName);
@@ -302,7 +394,16 @@
         
         // Constants & State
         const SUBJECTS = ['英語', '数学', '国語', '理科', '社会', '情報', 'その他'];
-        const SUBJECT_COLORS = { '英語': 'bg-pink-100 text-pink-800', '数学': 'bg-blue-100 text-blue-800', '国語': 'bg-red-100 text-red-800', '理科': 'bg-green-100 text-green-800', '社会': 'bg-yellow-100 text-yellow-800', '情報': 'bg-purple-100 text-purple-800', 'その他': 'bg-gray-100 text-gray-800' };
+        // 科目バッジの色も少し柔らかく調整 (ダークモード対応色)
+        const SUBJECT_COLORS = { 
+            '英語': 'bg-pink-100 text-pink-700 dark:bg-pink-900/40 dark:text-pink-300', 
+            '数学': 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300', 
+            '国語': 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300', 
+            '理科': 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300', 
+            '社会': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300', 
+            '情報': 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300', 
+            'その他': 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300' 
+        };
         const REVIEW_INTERVALS = { 'A': [1, 7, 30], 'B': [1, 3, 7, 14, 30], 'C': [1, 3, 7], 'D': [1, 2, 3, 7, 14, 30] };
 
         let currentUser = null;
@@ -312,14 +413,36 @@
         let unsubTasks = null, unsubRoutines = null;
         let chartSubjectInstance = null, chartEvalInstance = null;
         let isApplyingRoutines = false, isTasksLoaded = false, isRoutinesLoaded = false, initialRoutineApplied = false;
+        
+        // 🌟 追加: 細かい評価用の状態管理
+        let currentSubEvaluations = [];
 
-        // Utilities
         function formatDate(date) { const y = date.getFullYear(), m = String(date.getMonth() + 1).padStart(2, '0'), d = String(date.getDate()).padStart(2, '0'); return `${y}-${m}-${d}`; }
         function parseDateLocal(str) { const parts = str.split('-'); return new Date(parts[0], parts[1] - 1, parts[2]); }
         function escapeHTML(str) { return str ? str.replace(/[&<>'"]/g, tag => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'}[tag])) : ''; }
         function getActiveDateStr() { return document.querySelector('.view-section.active').id === 'view-calendar' ? calendarSelectedDateStr : formatDate(new Date()); }
 
-        // Global EXPORTS
+        // 🌟 ダークモード切り替え機能
+        window.toggleDarkMode = () => {
+            document.documentElement.classList.toggle('dark');
+            const isDark = document.documentElement.classList.contains('dark');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            updateThemeIcon(isDark);
+            if (window.updateChartColors) window.updateChartColors();
+        };
+
+        function updateThemeIcon(isDark) {
+            const icon = document.getElementById('theme-icon');
+            if (icon) {
+                icon.className = isDark ? 'fas fa-sun text-xs text-yellow-300' : 'fas fa-moon text-xs';
+            }
+        }
+        // DOM読み込み完了時にアイコン状態を合わせる
+        window.addEventListener('DOMContentLoaded', () => {
+            updateThemeIcon(document.documentElement.classList.contains('dark'));
+        });
+
+
         window.switchView = switchView; window.changeMonth = changeMonth;
         window.openAddTaskModal = () => document.getElementById('modal-add-task').classList.add('active');
         window.openAddRoutineModal = () => document.getElementById('modal-add-routine').classList.add('active');
@@ -328,7 +451,56 @@
         window.openTaskDetailModal = openTaskDetailModal; window.saveTaskDetail = saveTaskDetail;
         window.deleteTask = deleteTask; window.saveNewRoutine = saveNewRoutine; window.deleteRoutine = deleteRoutine;
 
-        // 🌟 認証・ログイン機能の実装 🌟
+        // 🌟 追加: 問題ごとの評価（サブ評価）機能のエクスポート
+        window.toggleSubEvaluations = () => {
+            const sec = document.getElementById('sub-evaluations-section');
+            const mainSec = document.getElementById('main-evaluation-section');
+            const btn = document.getElementById('toggle-sub-eval-btn');
+            
+            if (sec.classList.contains('hidden')) {
+                // 細かく評価モードON
+                sec.classList.remove('hidden');
+                mainSec.classList.add('opacity-40', 'pointer-events-none', 'grayscale');
+                btn.innerHTML = '全体評価に戻す <i class="fas fa-undo ml-1"></i>';
+                if(currentSubEvaluations.length === 0) window.addSubEvaluation();
+            } else {
+                // 全体評価モードON
+                sec.classList.add('hidden');
+                mainSec.classList.remove('opacity-40', 'pointer-events-none', 'grayscale');
+                btn.innerHTML = '問題ごとに細かく評価する <i class="fas fa-list-ul ml-1"></i>';
+            }
+        };
+
+        window.addSubEvaluation = () => {
+            currentSubEvaluations.push({ id: Date.now().toString() + Math.random().toString(), name: '', eval: '' });
+            renderSubEvaluations();
+        };
+
+        window.removeSubEvaluation = (id) => {
+            currentSubEvaluations = currentSubEvaluations.filter(x => x.id !== id);
+            renderSubEvaluations();
+        };
+
+        window.updateSubEvalName = (id, val) => { const item = currentSubEvaluations.find(x => x.id === id); if(item) item.name = val; };
+        window.updateSubEvalMark = (id, val) => { const item = currentSubEvaluations.find(x => x.id === id); if(item) item.eval = val; };
+
+        function renderSubEvaluations() {
+            const list = document.getElementById('sub-evaluations-list');
+            list.innerHTML = currentSubEvaluations.map(item => `
+                <div class="flex items-center space-x-2 bg-white dark:bg-gray-700 p-2 rounded-xl shadow-sm border border-gray-100 dark:border-gray-600">
+                    <input type="text" value="${escapeHTML(item.name)}" onchange="updateSubEvalName('${item.id}', this.value)" class="flex-grow border-none bg-gray-50 dark:bg-gray-600 dark:text-white p-2.5 rounded-lg text-sm focus:ring-2 focus:ring-purple-400 outline-none" placeholder="例: 問1">
+                    <select onchange="updateSubEvalMark('${item.id}', this.value)" class="w-24 border-none bg-gray-50 dark:bg-gray-600 dark:text-white p-2.5 rounded-lg text-sm focus:ring-2 focus:ring-purple-400 outline-none appearance-none font-bold text-center">
+                        <option value="">評価 ▼</option>
+                        <option value="A" ${item.eval === 'A' ? 'selected' : ''}>A (完璧)</option>
+                        <option value="B" ${item.eval === 'B' ? 'selected' : ''}>B (不安)</option>
+                        <option value="C" ${item.eval === 'C' ? 'selected' : ''}>C (復習)</option>
+                        <option value="D" ${item.eval === 'D' ? 'selected' : ''}>D (無理)</option>
+                    </select>
+                    <button onclick="removeSubEvaluation('${item.id}')" class="text-gray-400 hover:text-red-500 w-8 h-8 flex items-center justify-center rounded-full hover:bg-red-50 dark:hover:bg-gray-600 transition-colors"><i class="fas fa-times"></i></button>
+                </div>
+            `).join('');
+        }
+
         let isLoginMode = true;
         window.toggleAuthMode = () => {
             isLoginMode = !isLoginMode;
@@ -343,15 +515,10 @@
             const password = document.getElementById('auth-password').value;
             const errorEl = document.getElementById('auth-error-msg');
             errorEl.innerText = "";
-
             if (!email || !password) return errorEl.innerText = "メールアドレスとパスワードを入力してください。";
-
             try {
-                if (isLoginMode) {
-                    await signInWithEmailAndPassword(auth, email, password);
-                } else {
-                    await createUserWithEmailAndPassword(auth, email, password);
-                }
+                if (isLoginMode) await signInWithEmailAndPassword(auth, email, password);
+                else await createUserWithEmailAndPassword(auth, email, password);
             } catch (error) {
                 let msg = "エラーが発生しました。";
                 if (error.code === 'auth/invalid-email') msg = "メールアドレスの形式が正しくありません。";
@@ -362,67 +529,36 @@
             }
         };
 
-        window.handleLogout = async () => {
-            if (confirm("ログアウトしますか？")) {
-                await signOut(auth);
-            }
-        };
+        window.handleLogout = async () => { if (confirm("ログアウトしますか？")) await signOut(auth); };
 
-        // 初期化処理
         const initAuth = async () => {
             document.getElementById('env-status').innerText = isUsingPreviewDB ? "Preview (Test DB)" : "Production (Your DB)";
-            // プレビューのテスト用DBを使用している場合のみ、提供トークンで自動ログインを試みる（Canvas環境用）
             if (isUsingPreviewDB && typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                 try { await signInWithCustomToken(auth, __initial_auth_token); } catch(e) { console.error(e); }
             }
-            // ご自身のDBを使用する場合は、onAuthStateChangedのコールバックに任せる
         };
 
-        // ログイン状態の監視
         onAuthStateChanged(auth, (user) => {
             document.getElementById('loading-screen').style.display = 'none';
             if (user) {
-                // ログイン成功時
-                currentUser = user;
-                document.getElementById('display-user-id').innerText = user.uid;
-                
-                // 画面切り替え
-                document.getElementById('auth-screen').style.display = 'none';
-                document.getElementById('main-app').style.display = 'flex';
-                
-                setupListeners();
-                updateCountdowns();
-                populateSelects();
+                currentUser = user; document.getElementById('display-user-id').innerText = user.uid;
+                document.getElementById('auth-screen').style.display = 'none'; document.getElementById('main-app').style.display = 'flex';
+                setupListeners(); updateCountdowns(); populateSelects();
             } else {
-                // 未ログイン・ログアウト時
                 currentUser = null;
-                
-                // 画面切り替え
-                document.getElementById('auth-screen').style.display = 'flex';
-                document.getElementById('main-app').style.display = 'none';
-                
-                // データのクリーンアップ
-                if (unsubTasks) unsubTasks();
-                if (unsubRoutines) unsubRoutines();
-                tasks = [];
-                routines = [];
-                isTasksLoaded = false;
-                isRoutinesLoaded = false;
-                initialRoutineApplied = false;
+                document.getElementById('auth-screen').style.display = 'flex'; document.getElementById('main-app').style.display = 'none';
+                if (unsubTasks) unsubTasks(); if (unsubRoutines) unsubRoutines();
+                tasks = []; routines = []; isTasksLoaded = false; isRoutinesLoaded = false; initialRoutineApplied = false;
             }
         });
 
-        window.onload = () => { initAuth(); setInterval(updateCountdowns, 1000 * 60 * 60); };
+        window.onload = () => { initAuth(); setInterval(updateCountdowns, 1000 * 60 * 60); updateThemeIcon(document.documentElement.classList.contains('dark')); };
 
         function populateSelects() {
             const html = SUBJECTS.map(s => `<option value="${s}">${s}</option>`).join('');
             document.getElementById('input-task-subject').innerHTML = html;
             document.getElementById('input-routine-subject').innerHTML = html;
         }
-
-        // ============================================================================
-        // 以降のタスク管理機能・リスナーなどは今まで通り変更なし
-        // ============================================================================
 
         function setupListeners() {
             if (!currentUser) return;
@@ -431,26 +567,21 @@
             unsubTasks = onSnapshot(getCollectionRef('tasks'), async (snapshot) => {
                 tasks = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
                 tasks.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
-                isTasksLoaded = true;
-                tryApplyInitialRoutines();
-                renderCurrentView();
+                isTasksLoaded = true; tryApplyInitialRoutines(); renderCurrentView();
             }, e => console.error(e));
 
             unsubRoutines = onSnapshot(getCollectionRef('routines'), (snapshot) => {
                 routines = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
                 routines.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
                 isRoutinesLoaded = true;
-                if (!initialRoutineApplied) tryApplyInitialRoutines();
-                else checkAndApplyRoutines(getActiveDateStr());
+                if (!initialRoutineApplied) tryApplyInitialRoutines(); else checkAndApplyRoutines(getActiveDateStr());
                 if(document.getElementById('view-settings').classList.contains('active')) renderSettings();
             }, e => console.error(e));
         }
 
         async function tryApplyInitialRoutines() {
             if (isTasksLoaded && isRoutinesLoaded && !initialRoutineApplied) {
-                initialRoutineApplied = true;
-                await cleanupDuplicateRoutines(); 
-                await checkAndApplyRoutines(formatDate(new Date()));
+                initialRoutineApplied = true; await cleanupDuplicateRoutines(); await checkAndApplyRoutines(formatDate(new Date()));
             }
         }
 
@@ -510,10 +641,21 @@
 
         function switchView(viewName) {
             document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active', 'text-blue-500'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active', 'text-pink-500', 'dark:text-pink-400'));
+            
             document.getElementById(`view-${viewName}`).classList.add('active');
             const btn = document.getElementById(`nav-${viewName}`);
-            btn.classList.add('active', 'text-blue-500'); btn.classList.remove('text-gray-400');
+            btn.classList.add('active', 'text-pink-500', 'dark:text-pink-400'); 
+            btn.classList.remove('text-gray-400', 'dark:text-gray-500');
+            
+            // 🌟 追加: タブのアイコンをピョコンと跳ねさせるマイクロインタラクション
+            const icon = btn.querySelector('i');
+            if (icon) {
+                icon.classList.remove('animate-bounce-slight');
+                void icon.offsetWidth; // アニメーションをリセットするためのハック
+                icon.classList.add('animate-bounce-slight');
+            }
+
             if (viewName === 'analytics') setTimeout(renderAnalytics, 50);
             if (viewName === 'settings') renderSettings();
             if (viewName === 'calendar') renderCalendar();
@@ -527,18 +669,26 @@
         }
 
         function createTaskHTML(t) {
+            // 🌟 変更: 詳細評価がある場合のバッジを追加
+            let detailBadge = '';
+            if (t.subEvaluations && t.subEvaluations.length > 0) {
+                detailBadge = `<span class="ml-2 bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-300 px-1.5 py-0.5 rounded-md font-bold border border-purple-100 dark:border-purple-800">問題別記録あり</span>`;
+            }
+
             return `
-                <div class="flex items-center bg-white p-3 rounded-lg shadow-sm border ${t.isReview ? 'border-l-4 border-l-orange-400' : 'border-gray-100'}">
-                    <input type="checkbox" ${t.completed ? 'checked' : ''} class="w-6 h-6 text-blue-600 rounded mr-3 flex-shrink-0" onchange="toggleTaskComplete('${t.id}', this.checked)">
+                <div class="flex items-center bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-sm hover:shadow-md transition-all border border-gray-50 dark:border-gray-700 relative overflow-hidden mb-3">
+                    ${t.isReview ? '<div class="absolute left-0 top-0 bottom-0 w-1.5 bg-orange-400"></div>' : ''}
+                    <input type="checkbox" ${t.completed ? 'checked' : ''} class="w-6 h-6 text-pink-500 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-pink-500 mr-4 flex-shrink-0 transition-colors" onchange="toggleTaskComplete('${t.id}', this.checked)">
                     <div class="flex-grow cursor-pointer truncate" onclick="openTaskDetailModal('${t.id}')">
                         <div class="flex justify-between items-center mb-1">
-                            <span class="${t.completed ? 'line-through text-gray-400' : 'text-gray-800'} font-bold text-sm truncate mr-2">${escapeHTML(t.title)}</span>
-                            <span class="text-[10px] px-2 py-0.5 rounded-full ${SUBJECT_COLORS[t.subject] || SUBJECT_COLORS['その他']}">${escapeHTML(t.subject)}</span>
+                            <span class="${t.completed ? 'line-through text-gray-400 dark:text-gray-500' : 'text-gray-800 dark:text-gray-100'} font-bold text-base truncate mr-2 tracking-wide">${escapeHTML(t.title)}</span>
+                            <span class="text-[10px] px-2.5 py-1 rounded-full font-bold ${SUBJECT_COLORS[t.subject] || SUBJECT_COLORS['その他']}">${escapeHTML(t.subject)}</span>
                         </div>
-                        <div class="text-[11px] text-gray-500">
-                            予定: ${t.estimatedTime}分
-                            ${t.isReview ? '<span class="text-orange-500 ml-1">復習</span>' : ''}
-                            ${t.completed && t.evaluation ? `<span class="ml-2 bg-blue-50 text-blue-700 px-1 rounded font-bold border">評${t.evaluation}</span>` : ''}
+                        <div class="text-[11px] text-gray-500 dark:text-gray-400 font-medium flex items-center mt-1.5">
+                            <i class="far fa-clock mr-1"></i> ${t.estimatedTime}分
+                            ${t.isReview ? '<span class="text-orange-500 dark:text-orange-400 ml-2 bg-orange-50 dark:bg-orange-900/30 px-1.5 py-0.5 rounded-md"><i class="fas fa-redo-alt mr-1"></i>復習</span>' : ''}
+                            ${t.completed && t.evaluation ? `<span class="ml-2 bg-pink-50 dark:bg-pink-900/30 text-pink-600 dark:text-pink-300 px-1.5 py-0.5 rounded-md font-bold border border-pink-100 dark:border-pink-800">評${t.evaluation}</span>` : ''}
+                            ${detailBadge}
                         </div>
                     </div>
                 </div>`;
@@ -553,7 +703,7 @@
             document.getElementById('remaining-time').innerText = incomplete.reduce((sum, t) => sum + (Number(t.estimatedTime) || 0), 0);
             document.getElementById('incomplete-count').innerText = incomplete.length;
             document.getElementById('completed-count').innerText = completed.length;
-            document.getElementById('incomplete-tasks').innerHTML = incomplete.length ? incomplete.map(createTaskHTML).join('') : '<p class="text-xs text-gray-400 text-center py-2">未完了タスクなし</p>';
+            document.getElementById('incomplete-tasks').innerHTML = incomplete.length ? incomplete.map(createTaskHTML).join('') : '<p class="text-sm font-medium text-gray-400 dark:text-gray-500 text-center py-6 bg-white dark:bg-gray-800 rounded-2xl border border-dashed border-gray-200 dark:border-gray-700">未完了のタスクはありません</p>';
             document.getElementById('completed-tasks').innerHTML = completed.length ? completed.map(createTaskHTML).join('') : '';
         }
 
@@ -564,14 +714,26 @@
             document.getElementById('input-task-title').value = '';
             window.closeModal('modal-add-task');
             await addDoc(getCollectionRef('tasks'), {
-                date: getActiveDateStr(),
-                title, subject: document.getElementById('input-task-subject').value,
+                date: getActiveDateStr(), title, subject: document.getElementById('input-task-subject').value,
                 estimatedTime: parseInt(document.getElementById('input-task-time').value) || 0,
                 actualTime: 0, completed: false, createdAt: new Date().toISOString()
             });
         }
 
-        async function toggleTaskComplete(id, checked) { await updateDoc(getDocRef('tasks', id), { completed: checked }); }
+        async function toggleTaskComplete(id, checked) { 
+            // 🌟 追加: チェックを入れた時に紙吹雪を舞わせる
+            if (checked) {
+                const colors = ['#f472b6', '#c084fc', '#fb7185']; // テーマカラーの赤・ピンク・紫
+                confetti({
+                    particleCount: 80,
+                    spread: 60,
+                    origin: { y: 0.6 },
+                    colors: colors,
+                    disableForReducedMotion: true // アクセシビリティ配慮
+                });
+            }
+            await updateDoc(getDocRef('tasks', id), { completed: checked }); 
+        }
 
         function openTaskDetailModal(id) {
             const t = tasks.find(x => x.id === id);
@@ -583,42 +745,96 @@
             document.getElementById('detail-actual-time').value = t.actualTime || t.estimatedTime;
             document.getElementById('detail-note').value = t.note || '';
             document.querySelectorAll('input[name="evaluation"]').forEach(el => el.checked = (el.value === t.evaluation));
+            
+            // 🌟 追加: サブ評価の状態を復元
+            currentSubEvaluations = t.subEvaluations || [];
+            const sec = document.getElementById('sub-evaluations-section');
+            const mainSec = document.getElementById('main-evaluation-section');
+            const btn = document.getElementById('toggle-sub-eval-btn');
+            
+            if (currentSubEvaluations.length > 0) {
+                sec.classList.remove('hidden');
+                mainSec.classList.add('opacity-40', 'pointer-events-none', 'grayscale');
+                btn.innerHTML = '全体評価に戻す <i class="fas fa-undo ml-1"></i>';
+                renderSubEvaluations();
+            } else {
+                sec.classList.add('hidden');
+                mainSec.classList.remove('opacity-40', 'pointer-events-none', 'grayscale');
+                btn.innerHTML = '問題ごとに細かく評価する <i class="fas fa-list-ul ml-1"></i>';
+            }
+
             document.getElementById('modal-task-detail').classList.add('active');
         }
 
         async function saveTaskDetail() {
             const id = document.getElementById('detail-task-id').value;
             const t = tasks.find(x => x.id === id);
-            const evalNode = document.querySelector('input[name="evaluation"]:checked');
-            const evaluation = evalNode ? evalNode.value : null;
+            const isDetailedMode = !document.getElementById('sub-evaluations-section').classList.contains('hidden');
+            
+            let finalEval = null;
+            let finalSubEvals = [];
 
-            if (!t.completed && !evaluation) return alert("定着度評価を選択してください。");
+            if (isDetailedMode) {
+                // 細かく評価する場合のバリデーション
+                const isInvalid = currentSubEvaluations.some(x => !x.name.trim() || !x.eval);
+                if (isInvalid) return alert("全ての問題名と評価を入力するか、不要な行を削除してください。");
+                if (currentSubEvaluations.length === 0) return alert("少なくとも1つの問題を追加してください。");
+                finalSubEvals = currentSubEvaluations.map(x => ({ name: x.name.trim(), eval: x.eval }));
+            } else {
+                // 全体評価のバリデーション
+                const evalNode = document.querySelector('input[name="evaluation"]:checked');
+                finalEval = evalNode ? evalNode.value : null;
+                if (!t.completed && !finalEval) return alert("定着度評価を選択してください。");
+                finalEval = finalEval || t.evaluation; // 既存があれば維持
+            }
+
             window.closeModal('modal-task-detail');
 
-            await updateDoc(getDocRef('tasks', id), {
-                completed: true, actualTime: parseInt(document.getElementById('detail-actual-time').value) || 0,
-                note: document.getElementById('detail-note').value, evaluation: evaluation || t.evaluation
-            });
+            const updates = {
+                completed: true, 
+                actualTime: parseInt(document.getElementById('detail-actual-time').value) || 0,
+                note: document.getElementById('detail-note').value, 
+                evaluation: finalEval,
+                subEvaluations: finalSubEvals
+            };
+            await updateDoc(getDocRef('tasks', id), updates);
 
-            if(evaluation && !t.evaluation && !t.isReview) {
-                const intervals = REVIEW_INTERVALS[evaluation];
+            // 🌟 変更: 復習タスクの生成ロジック
+            if (!t.completed && !t.isReview) { // 初回完了時のみ
                 const baseDate = new Date(t.date);
-                for (const days of intervals) {
-                    const rDate = new Date(baseDate); rDate.setDate(rDate.getDate() + days);
-                    await addDoc(getCollectionRef('tasks'), {
-                        date: formatDate(rDate), title: `${t.title} 【復${days}日後/評${evaluation}】`,
-                        subject: t.subject, estimatedTime: t.actualTime || t.estimatedTime,
-                        actualTime: 0, completed: false, isReview: true, createdAt: new Date().toISOString()
-                    });
+                
+                if (isDetailedMode) {
+                    // 問題ごとの復習タスクを生成（時間は問題数で均等割り）
+                    const dividedTime = Math.max(1, Math.floor((updates.actualTime || t.estimatedTime) / finalSubEvals.length));
+                    for (const sub of finalSubEvals) {
+                        const intervals = REVIEW_INTERVALS[sub.eval];
+                        for (const days of intervals) {
+                            const rDate = new Date(baseDate); rDate.setDate(rDate.getDate() + days);
+                            await addDoc(getCollectionRef('tasks'), {
+                                date: formatDate(rDate), 
+                                title: `${t.title} [${sub.name}] 【復${days}日後/評${sub.eval}】`,
+                                subject: t.subject, estimatedTime: dividedTime,
+                                actualTime: 0, completed: false, isReview: true, createdAt: new Date().toISOString()
+                            });
+                        }
+                    }
+                } else if (finalEval) {
+                    // 全体の復習タスクを生成
+                    const intervals = REVIEW_INTERVALS[finalEval];
+                    for (const days of intervals) {
+                        const rDate = new Date(baseDate); rDate.setDate(rDate.getDate() + days);
+                        await addDoc(getCollectionRef('tasks'), {
+                            date: formatDate(rDate), title: `${t.title} 【復${days}日後/評${finalEval}】`,
+                            subject: t.subject, estimatedTime: updates.actualTime || t.estimatedTime,
+                            actualTime: 0, completed: false, isReview: true, createdAt: new Date().toISOString()
+                        });
+                    }
                 }
             }
         }
         
         async function deleteTask() {
-            if(confirm("削除しますか？")) {
-                await deleteDoc(getDocRef('tasks', document.getElementById('detail-task-id').value));
-                window.closeModal('modal-task-detail');
-            }
+            if(confirm("削除しますか？")) { await deleteDoc(getDocRef('tasks', document.getElementById('detail-task-id').value)); window.closeModal('modal-task-detail'); }
         }
 
         function changeMonth(offset) { 
@@ -629,7 +845,7 @@
             document.getElementById('calendar-month-display').innerText = `${y}年 ${m + 1}月`;
             const firstDay = new Date(y, m, 1).getDay(), daysInMonth = new Date(y, m + 1, 0).getDate();
             const grid = document.getElementById('calendar-grid'); grid.innerHTML = '';
-            for(let i=0; i<firstDay; i++) grid.innerHTML += `<div class="bg-gray-50 calendar-cell"></div>`;
+            for(let i=0; i<firstDay; i++) grid.innerHTML += `<div class="bg-gray-50 dark:bg-gray-800 rounded-xl calendar-cell"></div>`;
             for(let d=1; d<=daysInMonth; d++) {
                 const dateStr = formatDate(new Date(y, m, d));
                 const dayTasks = tasks.filter(t => t.date === dateStr);
@@ -637,28 +853,33 @@
                 let badge = '';
                 if(dayTasks.length) {
                     const comp = dayTasks.filter(t=>t.completed).length;
-                    badge = `<div class="text-[9px] font-bold mt-1 ${comp === dayTasks.length ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'} rounded-sm">${comp}/${dayTasks.length}</div>`;
+                    badge = `<div class="text-[9px] font-bold mt-1.5 ${comp === dayTasks.length ? 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300' : 'bg-pink-100 text-pink-700 dark:bg-pink-900/50 dark:text-pink-300'} rounded-full px-1.5 py-0.5 inline-block">${comp}/${dayTasks.length}</div>`;
                 }
-                grid.innerHTML += `<div onclick="selectCalendarDate('${dateStr}')" class="bg-white calendar-cell p-1 cursor-pointer hover:bg-gray-50 ${isSelected ? 'ring-2 ring-inset ring-blue-500 bg-blue-50' : ''}"><div class="text-center text-xs ${dateStr === formatDate(new Date()) ? 'font-bold text-blue-600' : ''}">${d}</div>${badge}</div>`;
+                grid.innerHTML += `<div onclick="selectCalendarDate('${dateStr}')" class="bg-white dark:bg-gray-700 calendar-cell rounded-2xl p-1.5 cursor-pointer hover:bg-pink-50 dark:hover:bg-gray-600 transition-colors ${isSelected ? 'ring-2 ring-inset ring-pink-500 bg-pink-50 dark:bg-gray-600 shadow-sm' : ''} text-center"><div class="text-xs ${dateStr === formatDate(new Date()) ? 'font-black text-pink-600 dark:text-pink-400 bg-pink-100 dark:bg-pink-900/50 w-6 h-6 mx-auto rounded-full flex items-center justify-center' : 'font-medium text-gray-700 dark:text-gray-300'}">${d}</div>${badge}</div>`;
             }
         }
         
         function renderCalendarTasks() {
             const parts = calendarSelectedDateStr.split('-');
-            document.getElementById('calendar-selected-date-display').innerHTML = `${parseInt(parts[1])}月${parseInt(parts[2])}日のタスク <span class="bg-gray-200 text-gray-700 text-xs px-2 py-1 rounded-full font-normal" id="calendar-task-count">0</span>`;
+            document.getElementById('calendar-selected-date-display').innerHTML = `${parseInt(parts[1])}月${parseInt(parts[2])}日のタスク <span class="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs px-3 py-1 rounded-full font-medium" id="calendar-task-count">0</span>`;
             const dayTasks = tasks.filter(t => t.date === calendarSelectedDateStr);
             document.getElementById('calendar-task-count').innerText = dayTasks.length;
             const container = document.getElementById('calendar-tasks-container');
-            if (dayTasks.length === 0) container.innerHTML = '<p class="text-xs text-gray-400 text-center py-4">この日のタスクはありません</p>';
+            if (dayTasks.length === 0) container.innerHTML = '<p class="text-sm font-medium text-gray-400 dark:text-gray-500 text-center py-6 bg-white dark:bg-gray-800 rounded-2xl border border-dashed border-gray-200 dark:border-gray-700">この日のタスクはありません</p>';
             else {
                 const incomplete = dayTasks.filter(t => !t.completed), completed = dayTasks.filter(t => t.completed);
                 container.innerHTML = incomplete.map(createTaskHTML).join('') + completed.map(createTaskHTML).join('');
             }
         }
 
-        window.selectCalendarDate = async (dateStr) => {
-            calendarSelectedDateStr = dateStr; await checkAndApplyRoutines(calendarSelectedDateStr); 
-            renderCalendar(); renderCalendarTasks();
+        window.selectCalendarDate = async (dateStr) => { calendarSelectedDateStr = dateStr; await checkAndApplyRoutines(calendarSelectedDateStr); renderCalendar(); renderCalendarTasks(); };
+
+        // 🌟 Chart.jsの文字色をテーマに合わせて更新する関数
+        window.updateChartColors = function() {
+            const isDark = document.documentElement.classList.contains('dark');
+            Chart.defaults.color = isDark ? '#9CA3AF' : '#6B7280'; // text-gray-400 : text-gray-500
+            if (chartSubjectInstance) chartSubjectInstance.update();
+            if (chartEvalInstance) chartEvalInstance.update();
         };
 
         function renderAnalytics() {
@@ -667,19 +888,30 @@
             const evalData = {'A':0, 'B':0, 'C':0, 'D':0};
             completed.forEach(t => { subData[t.subject||'その他'] += Number(t.actualTime); if(t.evaluation) evalData[t.evaluation]++; });
 
-            const bgColors = ['#FBCFE8', '#DBEAFE', '#FEE2E2', '#D1FAE5', '#FEF3C7', '#E0E7FF', '#F3F4F6'];
+            // 色合いを赤・ピンク・紫ベースに変更
+            const bgColors = ['#F472B6', '#C084FC', '#FB7185', '#34D399', '#FBBF24', '#818CF8', '#9CA3AF'];
+            
             if(chartSubjectInstance) chartSubjectInstance.destroy();
-            chartSubjectInstance = new Chart(document.getElementById('chart-subject'), { type: 'doughnut', data: { labels: SUBJECTS, datasets: [{ data: SUBJECTS.map(s => subData[s]), backgroundColor: bgColors }] }, options: { responsive: true, maintainAspectRatio: false } });
+            chartSubjectInstance = new Chart(document.getElementById('chart-subject'), { type: 'doughnut', data: { labels: SUBJECTS, datasets: [{ data: SUBJECTS.map(s => subData[s]), backgroundColor: bgColors, borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '70%' } });
 
             if(chartEvalInstance) chartEvalInstance.destroy();
-            chartEvalInstance = new Chart(document.getElementById('chart-evaluation'), { type: 'pie', data: { labels: ['A', 'B', 'C', 'D'], datasets: [{ data: [evalData['A'], evalData['B'], evalData['C'], evalData['D']], backgroundColor: ['#60A5FA', '#34D399', '#FBBF24', '#F87171'] }] }, options: { responsive: true, maintainAspectRatio: false } });
+            chartEvalInstance = new Chart(document.getElementById('chart-evaluation'), { type: 'pie', data: { labels: ['A (完璧)', 'B (やや不安)', 'C (要確認)', 'D (歯が立たず)'], datasets: [{ data: [evalData['A'], evalData['B'], evalData['C'], evalData['D']], backgroundColor: ['#F472B6', '#C084FC', '#FBBF24', '#FB7185'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false } });
+            
+            // 初回描画時にテーマカラーを適用
+            window.updateChartColors();
         }
 
         function renderSettings() {
             document.getElementById('routine-list').innerHTML = routines.map(r => `
-                <li class="flex justify-between items-center bg-gray-50 p-2 rounded-lg mb-2 border">
-                    <div><p class="font-bold text-sm">${escapeHTML(r.title)}</p><p class="text-xs text-gray-500">${escapeHTML(r.subject)} / ${r.estimatedTime}分</p></div>
-                    <button onclick="deleteRoutine('${r.id}')" class="text-red-400"><i class="fas fa-trash"></i></button>
+                <li class="flex justify-between items-center bg-gray-50 dark:bg-gray-700/50 p-4 rounded-2xl mb-3 border border-gray-100 dark:border-gray-700 transition-colors">
+                    <div>
+                        <p class="font-bold text-sm text-gray-800 dark:text-gray-100 mb-1.5 tracking-wide">${escapeHTML(r.title)}</p>
+                        <p class="text-[11px] text-gray-500 dark:text-gray-400 font-medium flex items-center">
+                            <span class="${SUBJECT_COLORS[r.subject] || SUBJECT_COLORS['その他']} px-2 py-0.5 rounded-full mr-2 font-bold">${escapeHTML(r.subject)}</span>
+                            予定: ${r.estimatedTime}分
+                        </p>
+                    </div>
+                    <button onclick="deleteRoutine('${r.id}')" class="text-red-400 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 bg-red-50 dark:bg-red-900/30 hover:bg-red-100 dark:hover:bg-red-900/50 w-10 h-10 rounded-full flex items-center justify-center transition-colors"><i class="fas fa-trash"></i></button>
                 </li>
             `).join('');
         }
