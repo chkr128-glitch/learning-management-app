@@ -8,13 +8,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
-            darkMode: 'class', // ダークモードをクラスで制御
+            darkMode: 'class', 
             theme: {
                 extend: {
-                    colors: {
-                        // カスタムカラーが必要な場合はここに追加
-                    },
-                    // 🌟 追加: マイクロインタラクション用のアニメーション定義
                     animation: {
                         'bounce-slight': 'bounce-slight 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) both',
                         'pop-in': 'pop-in 0.2s ease-out',
@@ -34,7 +30,6 @@
             }
         }
     </script>
-    <!-- ダークモード初期化スクリプト (ちらつき防止のためhead内に配置) -->
     <script>
         function initTheme() {
             if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
@@ -49,13 +44,12 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- 🌟 追加: 紙吹雪アニメーション用ライブラリ -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         body { font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif; }
         .view-section:not(.active) { display: none !important; }
         .view-section.active { display: block; }
-        .tab-btn.active { color: #ec4899; } /* ピンク */
+        .tab-btn.active { color: #ec4899; } 
         .dark .tab-btn.active { color: #f472b6; }
         .modal-overlay { display: none; }
         .modal-overlay.active { display: flex; }
@@ -63,20 +57,16 @@
         .pb-safe { padding-bottom: env(safe-area-inset-bottom, 1rem); }
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
         .calendar-cell { min-height: 80px; }
-        
-        /* フォーム要素のデフォルトの枠線を消すなど微調整 */
         select { appearance: none; -webkit-appearance: none; }
     </style>
 </head>
 <body class="text-gray-800 dark:text-gray-100 h-screen overflow-hidden flex flex-col bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
 
-    <!-- 🌟 ローディング画面 -->
     <div id="loading-screen" class="absolute inset-0 bg-gray-50/90 dark:bg-gray-900/90 backdrop-blur-sm z-50 flex flex-col items-center justify-center transition-colors">
         <i class="fas fa-spinner fa-spin text-5xl text-pink-500 mb-4"></i>
         <p class="text-gray-500 dark:text-gray-400 font-medium tracking-wide">読み込み中...</p>
     </div>
 
-    <!-- 🌟 認証（ログイン・新規登録）画面 -->
     <div id="auth-screen" class="absolute inset-0 bg-gray-50 dark:bg-gray-900 z-40 hidden flex-col items-center justify-center p-5 transition-colors">
         <div class="bg-white dark:bg-gray-800 p-8 sm:p-10 rounded-3xl shadow-xl w-full max-w-sm border border-gray-100 dark:border-gray-700">
             <h2 class="text-2xl font-black text-center text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-purple-600 mb-8 tracking-wide" id="auth-title">ログイン</h2>
@@ -98,14 +88,10 @@
         </div>
     </div>
 
-    <!-- 🌟 メインアプリ領域（ログイン後に表示） -->
     <div id="main-app" class="flex-1 flex-col hidden w-full h-full relative">
-        
-        <!-- Header -->
         <header class="bg-gradient-to-r from-red-500 via-pink-500 to-purple-600 text-white p-4 shadow-md fixed w-full z-20 top-0 flex justify-between items-center h-16 rounded-b-3xl transition-colors">
             <div class="ml-2 flex items-center">
                 <h1 class="text-sm font-black tracking-wider opacity-90">志望校合格マネージャー</h1>
-                <!-- テーマ切り替えボタン -->
                 <button onclick="toggleDarkMode()" class="ml-3 w-8 h-8 flex items-center justify-center bg-white/20 rounded-full hover:bg-white/30 transition-colors focus:outline-none">
                     <i id="theme-icon" class="fas fa-moon text-xs"></i>
                 </button>
@@ -116,36 +102,29 @@
             </div>
         </header>
 
-        <!-- Main Content Area -->
         <main class="flex-1 overflow-y-auto mt-20 mb-24 pb-6 relative w-full max-w-lg mx-auto" id="main-content">
             
             <!-- Dashboard View -->
             <div id="view-dashboard" class="view-section active p-5">
                 <h2 id="current-date-display" class="text-2xl font-black text-gray-800 dark:text-white mb-5 ml-1 tracking-tight transition-colors">今日のタスク</h2>
-                
-                <!-- 🌟 追加: カード表示時にポンッと出るアニメーション (animate-pop-in) -->
                 <div class="mb-8 bg-gradient-to-br from-red-400 via-pink-500 to-purple-500 p-6 rounded-3xl shadow-[0_10px_25px_rgba(236,72,153,0.3)] dark:shadow-[0_10px_25px_rgba(0,0,0,0.5)] text-white relative overflow-hidden animate-pop-in">
                     <div class="absolute -right-4 -top-4 w-24 h-24 bg-white opacity-10 rounded-full"></div>
                     <div class="absolute -bottom-8 -right-8 w-32 h-32 bg-white opacity-10 rounded-full"></div>
                     <p class="text-sm font-medium opacity-90 relative z-10">本日の残り推定学習時間</p>
                     <p class="text-4xl font-black mt-2 relative z-10"><span id="remaining-time">0</span> <span class="text-lg font-bold">分</span></p>
                 </div>
-
                 <div class="mb-8">
                     <h3 class="font-bold text-gray-700 dark:text-gray-300 mb-4 flex justify-between items-end pb-2 ml-1 border-b border-gray-200 dark:border-gray-700 transition-colors">
                         未完了のタスク <span class="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs px-3 py-1 rounded-full font-medium" id="incomplete-count">0</span>
                     </h3>
                     <div id="incomplete-tasks" class="space-y-3"></div>
                 </div>
-
                 <div>
                     <h3 class="font-bold text-gray-700 dark:text-gray-300 mb-4 flex justify-between items-end pb-2 ml-1 border-b border-gray-200 dark:border-gray-700 transition-colors">
                         完了済みのタスク <span class="bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400 text-xs px-3 py-1 rounded-full font-medium" id="completed-count">0</span>
                     </h3>
                     <div id="completed-tasks" class="space-y-3 opacity-80"></div>
                 </div>
-
-                <!-- 浮かぶ追加ボタン (FAB) -->
                 <button onclick="openAddTaskModal()" class="fixed bottom-24 right-5 lg:right-[calc(50%-14rem)] w-16 h-16 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-full shadow-[0_8px_20px_rgba(236,72,153,0.4)] dark:shadow-[0_8px_20px_rgba(0,0,0,0.5)] flex items-center justify-center text-2xl hover:opacity-90 transition-all transform hover:scale-105 hover:-translate-y-1 z-10">
                     <i class="fas fa-plus"></i>
                 </button>
@@ -172,46 +151,82 @@
                 </div>
             </div>
 
-            <!-- Analytics View -->
+            <!-- 🌟 Analytics View (レーダーチャート追加) -->
             <div id="view-analytics" class="view-section p-5">
                 <h2 class="text-2xl font-black text-gray-800 dark:text-white mb-6 ml-1 tracking-tight transition-colors">学習分析</h2>
-                <div class="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm mb-6 transition-colors border border-gray-100 dark:border-gray-700">
-                    <h3 class="text-sm font-bold text-pink-600 dark:text-pink-400 mb-5 text-center bg-pink-50 dark:bg-pink-900/30 py-2 rounded-2xl inline-block px-6 mx-auto block w-max">科目別 累計学習時間</h3>
-                    <div class="relative h-64 w-full"><canvas id="chart-subject"></canvas></div>
+                
+                <!-- 新規: 志望校配点と学習時間のギャップ可視化 -->
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm mb-6 transition-colors border border-gray-100 dark:border-gray-700 relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-pink-500 to-purple-500"></div>
+                    <h3 class="text-sm font-bold text-gray-800 dark:text-gray-200 mb-1 text-center">配点比率 vs 実際の学習時間</h3>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 text-center mb-5 font-medium">志望校の配点に対して、適切なバランスで勉強できているか確認しましょう。</p>
+                    <div class="relative h-72 w-full"><canvas id="chart-radar"></canvas></div>
                 </div>
-                <div class="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm mb-6 transition-colors border border-gray-100 dark:border-gray-700">
-                    <h3 class="text-sm font-bold text-purple-600 dark:text-purple-400 mb-5 text-center bg-purple-50 dark:bg-purple-900/30 py-2 rounded-2xl inline-block px-6 mx-auto block w-max">理解度（定着度）分布</h3>
-                    <div class="relative h-64 w-full"><canvas id="chart-evaluation"></canvas></div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm transition-colors border border-gray-100 dark:border-gray-700">
+                        <h3 class="text-sm font-bold text-pink-600 dark:text-pink-400 mb-5 text-center bg-pink-50 dark:bg-pink-900/30 py-2 rounded-2xl inline-block px-6 mx-auto block w-max">科目別 累計学習時間</h3>
+                        <div class="relative h-64 w-full"><canvas id="chart-subject"></canvas></div>
+                    </div>
+                    <div class="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm transition-colors border border-gray-100 dark:border-gray-700">
+                        <h3 class="text-sm font-bold text-purple-600 dark:text-purple-400 mb-5 text-center bg-purple-50 dark:bg-purple-900/30 py-2 rounded-2xl inline-block px-6 mx-auto block w-max">理解度（定着度）分布</h3>
+                        <div class="relative h-64 w-full"><canvas id="chart-evaluation"></canvas></div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Settings View -->
+            <!-- 🌟 Settings View (志望校・配点設定の追加) -->
             <div id="view-settings" class="view-section p-5">
                 <h2 class="text-2xl font-black text-gray-800 dark:text-white mb-6 ml-1 tracking-tight transition-colors">設定・管理</h2>
                 
+                <!-- 志望校・配点設定 -->
+                <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm p-6 mb-6 transition-colors border border-gray-100 dark:border-gray-700 relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-400 to-pink-500"></div>
+                    <h3 class="font-bold text-gray-700 dark:text-gray-300 mb-4 flex items-center"><i class="fas fa-university text-pink-500 mr-2"></i>志望校・配点設定</h3>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-4 leading-relaxed">大学・学部名を入力して「AIで配点自動検索」を押すと、ネットから配点情報を探して自動入力します。</p>
+                    
+                    <div class="flex space-x-3 mb-4">
+                        <div class="w-1/2">
+                            <label class="block text-xs font-bold text-gray-600 dark:text-gray-400 mb-1 ml-1">大学名</label>
+                            <input type="text" id="setting-univ" class="w-full border-none bg-gray-50 dark:bg-gray-700 dark:text-white p-3 rounded-xl focus:ring-2 focus:ring-pink-500 outline-none transition-all" placeholder="例: 東京大学">
+                        </div>
+                        <div class="w-1/2">
+                            <label class="block text-xs font-bold text-gray-600 dark:text-gray-400 mb-1 ml-1">学部・学科名</label>
+                            <input type="text" id="setting-fac" class="w-full border-none bg-gray-50 dark:bg-gray-700 dark:text-white p-3 rounded-xl focus:ring-2 focus:ring-pink-500 outline-none transition-all" placeholder="例: 理科一類">
+                        </div>
+                    </div>
+                    
+                    <button onclick="autoFetchWeights()" id="btn-auto-fetch" class="w-full bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 font-bold py-3 rounded-xl hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors mb-5 border border-indigo-100 dark:border-indigo-800 flex justify-center items-center">
+                        <i class="fas fa-magic mr-2"></i> AIで配点自動検索
+                    </button>
+
+                    <label class="block text-xs font-bold text-gray-600 dark:text-gray-400 mb-2 ml-1">各科目の配点（手動入力・修正可能）</label>
+                    <div class="grid grid-cols-3 sm:grid-cols-4 gap-3 mb-5" id="weight-inputs-container">
+                        <!-- JSで動的に生成 -->
+                    </div>
+
+                    <button onclick="saveUserProfile()" class="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold py-3.5 rounded-xl hover:opacity-90 transition-all shadow-md transform hover:-translate-y-0.5">志望校情報を保存する</button>
+                </div>
+
+                <!-- 固定ルーティン -->
                 <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm p-6 mb-6 transition-colors border border-gray-100 dark:border-gray-700">
                     <div class="flex justify-between items-center mb-5">
-                        <h3 class="font-bold text-gray-700 dark:text-gray-300 flex items-center"><i class="fas fa-list-check text-pink-500 mr-2"></i>固定ルーティン</h3>
-                        <button onclick="openAddRoutineModal()" class="text-sm bg-pink-50 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400 px-4 py-1.5 rounded-full font-bold hover:bg-pink-100 dark:hover:bg-pink-900/50 transition"><i class="fas fa-plus mr-1"></i>追加</button>
+                        <h3 class="font-bold text-gray-700 dark:text-gray-300 flex items-center"><i class="fas fa-list-check text-purple-500 mr-2"></i>固定ルーティン</h3>
+                        <button onclick="openAddRoutineModal()" class="text-sm bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 px-4 py-1.5 rounded-full font-bold hover:bg-purple-100 dark:hover:bg-purple-900/50 transition"><i class="fas fa-plus mr-1"></i>追加</button>
                     </div>
                     <ul id="routine-list" class="space-y-3"></ul>
                 </div>
                 
-                <!-- アカウント管理セクション -->
+                <!-- アカウント管理 -->
                 <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm p-6 mb-6 border border-gray-100 dark:border-gray-700 transition-colors">
-                    <h3 class="font-bold text-gray-700 dark:text-gray-300 mb-4 flex items-center"><i class="fas fa-user-circle text-purple-500 mr-2"></i>アカウント管理</h3>
+                    <h3 class="font-bold text-gray-700 dark:text-gray-300 mb-4 flex items-center"><i class="fas fa-user-circle text-gray-500 mr-2"></i>アカウント管理</h3>
                     <p class="text-xs text-gray-500 dark:text-gray-400 mb-2 ml-1 font-medium">ログイン中のユーザーID:</p>
                     <p class="text-xs font-mono bg-gray-50 dark:bg-gray-700 p-3 rounded-2xl mb-6 break-all text-gray-600 dark:text-gray-300 border border-gray-100 dark:border-gray-600" id="display-user-id">---</p>
                     <button onclick="handleLogout()" class="w-full bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 font-bold py-3 rounded-full hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors border border-transparent dark:border-red-900/30">ログアウト</button>
                 </div>
-
-                <div class="mt-8 text-center text-[10px] text-gray-400 font-medium">
-                    <p>Environment: <span id="env-status" class="font-bold text-gray-500 dark:text-gray-400"></span></p>
-                </div>
             </div>
         </main>
 
-        <!-- Bottom Navigation (すりガラス＆丸み) -->
         <nav class="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-t border-gray-100 dark:border-gray-800 fixed bottom-0 w-full z-20 pb-safe shadow-[0_-10px_30px_rgba(0,0,0,0.05)] flex rounded-t-3xl transition-colors">
             <div class="flex justify-around w-full max-w-lg mx-auto px-2">
                 <button onclick="switchView('dashboard')" id="nav-dashboard" class="tab-btn active flex flex-col items-center py-3.5 w-1/4 text-gray-400 dark:text-gray-500 hover:text-pink-500 dark:hover:text-pink-400 transition-colors">
@@ -231,7 +246,7 @@
     </div>
 
     <!-- MODALS -->
-    <!-- Add Task Modal -->
+    <!-- (タスク追加、詳細記録、ルーティン追加のモーダルは既存コードと同様。長いため省略せず全て記載します) -->
     <div id="modal-add-task" class="modal-overlay fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 justify-center items-end sm:items-center" onclick="if(event.target===this) closeModal('modal-add-task')">
         <div class="modal-content bg-white dark:bg-gray-800 w-full sm:max-w-md sm:rounded-3xl rounded-t-3xl p-6 sm:p-8 transform transition-transform duration-300 translate-y-0 shadow-2xl border border-gray-100 dark:border-gray-700">
             <div class="flex justify-between items-center mb-6">
@@ -259,61 +274,37 @@
         </div>
     </div>
 
-    <!-- Task Detail Modal -->
     <div id="modal-task-detail" class="modal-overlay fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 justify-center items-center" onclick="if(event.target===this) closeModal('modal-task-detail')">
         <div class="modal-content bg-white dark:bg-gray-800 w-11/12 max-w-md rounded-3xl p-6 sm:p-8 transform transition-transform duration-300 translate-y-0 shadow-2xl relative border border-gray-100 dark:border-gray-700">
             <button onclick="closeModal('modal-task-detail')" class="absolute top-6 right-6 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"><i class="fas fa-times"></i></button>
-            
             <h3 class="text-xl font-black mb-2 text-gray-800 dark:text-white pr-10" id="detail-title">タスク名</h3>
             <p class="text-xs text-gray-500 dark:text-gray-400 mb-6 font-medium flex items-center">
                 <span id="detail-subject" class="px-2.5 py-1 rounded-full bg-gray-100 dark:bg-gray-700 mr-2">科目</span>
                 予定: <span id="detail-est-time" class="mx-1 font-bold text-gray-700 dark:text-gray-300"></span>分
             </p>
             <input type="hidden" id="detail-task-id">
-            
             <div class="space-y-6">
                 <div>
                     <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 ml-1">実際の学習時間 (分)</label>
                     <input type="number" id="detail-actual-time" class="w-full border-none bg-gray-100 dark:bg-gray-700 dark:text-white p-4 rounded-2xl focus:ring-2 focus:ring-pink-500 focus:bg-white dark:focus:bg-gray-600 outline-none transition-all font-bold text-lg text-center">
                 </div>
-                
-                <!-- 🌟 変更: 評価セクションを「全体」と「個別詳細」に切り替え可能に -->
                 <div>
                     <div class="flex justify-between items-center mb-2 ml-1">
                         <label class="block text-sm font-bold text-gray-700 dark:text-gray-300">定着度評価</label>
-                        <button onclick="toggleSubEvaluations()" id="toggle-sub-eval-btn" class="text-xs text-pink-500 dark:text-pink-400 hover:text-pink-600 font-bold transition-colors">
-                            問題ごとに細かく評価する <i class="fas fa-list-ul ml-1"></i>
-                        </button>
+                        <button onclick="toggleSubEvaluations()" id="toggle-sub-eval-btn" class="text-xs text-pink-500 dark:text-pink-400 hover:text-pink-600 font-bold transition-colors">問題ごとに細かく評価する <i class="fas fa-list-ul ml-1"></i></button>
                     </div>
-                    
-                    <!-- 全体評価 -->
                     <div id="main-evaluation-section" class="grid grid-cols-2 gap-3 text-sm font-medium transition-all duration-300">
-                        <label class="border-2 border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50 rounded-2xl p-3 flex items-center cursor-pointer hover:bg-pink-50 dark:hover:bg-gray-700 hover:border-pink-200 dark:hover:border-pink-500 transition-colors dark:text-gray-200">
-                            <input type="radio" name="evaluation" value="A" class="mr-2 text-pink-500 focus:ring-pink-500 w-4 h-4 bg-white dark:bg-gray-600 border-gray-300 dark:border-gray-500"> A: 完璧
-                        </label>
-                        <label class="border-2 border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50 rounded-2xl p-3 flex items-center cursor-pointer hover:bg-pink-50 dark:hover:bg-gray-700 hover:border-pink-200 dark:hover:border-pink-500 transition-colors dark:text-gray-200">
-                            <input type="radio" name="evaluation" value="B" class="mr-2 text-pink-500 focus:ring-pink-500 w-4 h-4 bg-white dark:bg-gray-600 border-gray-300 dark:border-gray-500"> B: やや不安
-                        </label>
-                        <label class="border-2 border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50 rounded-2xl p-3 flex items-center cursor-pointer hover:bg-pink-50 dark:hover:bg-gray-700 hover:border-pink-200 dark:hover:border-pink-500 transition-colors dark:text-gray-200">
-                            <input type="radio" name="evaluation" value="C" class="mr-2 text-pink-500 focus:ring-pink-500 w-4 h-4 bg-white dark:bg-gray-600 border-gray-300 dark:border-gray-500"> C: 要復習
-                        </label>
-                        <label class="border-2 border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50 rounded-2xl p-3 flex items-center cursor-pointer hover:bg-pink-50 dark:hover:bg-gray-700 hover:border-pink-200 dark:hover:border-pink-500 transition-colors dark:text-gray-200">
-                            <input type="radio" name="evaluation" value="D" class="mr-2 text-pink-500 focus:ring-pink-500 w-4 h-4 bg-white dark:bg-gray-600 border-gray-300 dark:border-gray-500"> D: 歯が立たず
-                        </label>
+                        <label class="border-2 border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50 rounded-2xl p-3 flex items-center cursor-pointer hover:bg-pink-50 dark:hover:bg-gray-700 hover:border-pink-200 dark:hover:border-pink-500 transition-colors dark:text-gray-200"><input type="radio" name="evaluation" value="A" class="mr-2 text-pink-500 focus:ring-pink-500 w-4 h-4 bg-white dark:bg-gray-600 border-gray-300 dark:border-gray-500"> A: 完璧</label>
+                        <label class="border-2 border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50 rounded-2xl p-3 flex items-center cursor-pointer hover:bg-pink-50 dark:hover:bg-gray-700 hover:border-pink-200 dark:hover:border-pink-500 transition-colors dark:text-gray-200"><input type="radio" name="evaluation" value="B" class="mr-2 text-pink-500 focus:ring-pink-500 w-4 h-4 bg-white dark:bg-gray-600 border-gray-300 dark:border-gray-500"> B: やや不安</label>
+                        <label class="border-2 border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50 rounded-2xl p-3 flex items-center cursor-pointer hover:bg-pink-50 dark:hover:bg-gray-700 hover:border-pink-200 dark:hover:border-pink-500 transition-colors dark:text-gray-200"><input type="radio" name="evaluation" value="C" class="mr-2 text-pink-500 focus:ring-pink-500 w-4 h-4 bg-white dark:bg-gray-600 border-gray-300 dark:border-gray-500"> C: 要復習</label>
+                        <label class="border-2 border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50 rounded-2xl p-3 flex items-center cursor-pointer hover:bg-pink-50 dark:hover:bg-gray-700 hover:border-pink-200 dark:hover:border-pink-500 transition-colors dark:text-gray-200"><input type="radio" name="evaluation" value="D" class="mr-2 text-pink-500 focus:ring-pink-500 w-4 h-4 bg-white dark:bg-gray-600 border-gray-300 dark:border-gray-500"> D: 歯が立たず</label>
                     </div>
-
-                    <!-- 個別（問題ごと）評価コンテナ -->
                     <div id="sub-evaluations-section" class="hidden mt-3 bg-gray-50 dark:bg-gray-800 p-4 rounded-2xl border border-gray-200 dark:border-gray-700">
-                        <p class="text-[11px] text-gray-500 dark:text-gray-400 mb-3 font-medium leading-tight">問題名（例: 問1, p.14）と評価を入力してください。<br>評価に応じて個別の復習タスクが生成されます。</p>
-                        <div id="sub-evaluations-list" class="space-y-2 mb-3">
-                            <!-- JSで動的に追加 -->
-                        </div>
-                        <button onclick="addSubEvaluation()" class="text-xs text-purple-600 hover:text-purple-700 dark:text-purple-400 font-bold flex items-center justify-center w-full py-2.5 bg-purple-100 dark:bg-purple-900/40 rounded-xl transition-colors">
-                            <i class="fas fa-plus mr-1"></i> 問題を追加する
-                        </button>
+                        <p class="text-[11px] text-gray-500 dark:text-gray-400 mb-3 font-medium leading-tight">問題名（例: 問1, p.14）と評価を入力してください。</p>
+                        <div id="sub-evaluations-list" class="space-y-2 mb-3"></div>
+                        <button onclick="addSubEvaluation()" class="text-xs text-purple-600 hover:text-purple-700 dark:text-purple-400 font-bold flex items-center justify-center w-full py-2.5 bg-purple-100 dark:bg-purple-900/40 rounded-xl transition-colors"><i class="fas fa-plus mr-1"></i> 問題を追加</button>
                     </div>
                 </div>
-
                 <div>
                     <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 ml-1">学習メモ</label>
                     <textarea id="detail-note" class="w-full border-none bg-gray-100 dark:bg-gray-700 dark:text-white p-4 rounded-2xl h-24 focus:ring-2 focus:ring-pink-500 focus:bg-white dark:focus:bg-gray-600 outline-none transition-all resize-none leading-relaxed" placeholder="気づきや弱点などをメモ..."></textarea>
@@ -326,7 +317,6 @@
         </div>
     </div>
 
-    <!-- Add Routine Modal -->
     <div id="modal-add-routine" class="modal-overlay fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 justify-center items-end sm:items-center" onclick="if(event.target===this) closeModal('modal-add-routine')">
         <div class="modal-content bg-white dark:bg-gray-800 w-full sm:max-w-md sm:rounded-3xl rounded-t-3xl p-6 sm:p-8 transform transition-transform duration-300 translate-y-0 shadow-2xl border border-gray-100 dark:border-gray-700">
             <div class="flex justify-between items-center mb-6">
@@ -360,8 +350,6 @@
         import { getFirestore, collection, doc, setDoc, getDoc, getDocs, onSnapshot, addDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // ============================================================================
-        // 🔴🔴🔴 あなたの Firebase 設定情報 🔴🔴🔴
-        // ============================================================================
         const MY_FIREBASE_CONFIG = {
             apiKey: "AIzaSyAyzCLL-Y_xuQ0RzHurN0r5UvqdNm-Yomw",
             authDomain: "learning-manager-829f4.firebaseapp.com",
@@ -370,6 +358,7 @@
             messagingSenderId: "530087746816",
             appId: "1:530087746816:web:a041336d78584ca4bc67e5"
         };
+        const apiKey = ""; // ランタイムで注入されるGemini API Key
 
         const isPreviewEnv = typeof __firebase_config !== 'undefined';
         const useMyConfig = MY_FIREBASE_CONFIG.apiKey !== "";
@@ -392,9 +381,7 @@
 
         // ============================================================================
         
-        // Constants & State
         const SUBJECTS = ['英語', '数学', '国語', '理科', '社会', '情報', 'その他'];
-        // 科目バッジの色も少し柔らかく調整 (ダークモード対応色)
         const SUBJECT_COLORS = { 
             '英語': 'bg-pink-100 text-pink-700 dark:bg-pink-900/40 dark:text-pink-300', 
             '数学': 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300', 
@@ -408,13 +395,14 @@
 
         let currentUser = null;
         let tasks = [], routines = [];
+        // 🌟 追加: プロフィール情報（志望校、配点）の保持
+        let userProfile = { targetUniv: '', targetFaculty: '', weights: {} };
+        
         let calendarSelectedDateStr = formatDate(new Date()); 
         let calendarMonthObj = new Date(); calendarMonthObj.setDate(1);
-        let unsubTasks = null, unsubRoutines = null;
-        let chartSubjectInstance = null, chartEvalInstance = null;
+        let unsubTasks = null, unsubRoutines = null, unsubProfile = null;
+        let chartSubjectInstance = null, chartEvalInstance = null, chartRadarInstance = null;
         let isApplyingRoutines = false, isTasksLoaded = false, isRoutinesLoaded = false, initialRoutineApplied = false;
-        
-        // 🌟 追加: 細かい評価用の状態管理
         let currentSubEvaluations = [];
 
         function formatDate(date) { const y = date.getFullYear(), m = String(date.getMonth() + 1).padStart(2, '0'), d = String(date.getDate()).padStart(2, '0'); return `${y}-${m}-${d}`; }
@@ -422,7 +410,6 @@
         function escapeHTML(str) { return str ? str.replace(/[&<>'"]/g, tag => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'}[tag])) : ''; }
         function getActiveDateStr() { return document.querySelector('.view-section.active').id === 'view-calendar' ? calendarSelectedDateStr : formatDate(new Date()); }
 
-        // 🌟 ダークモード切り替え機能
         window.toggleDarkMode = () => {
             document.documentElement.classList.toggle('dark');
             const isDark = document.documentElement.classList.contains('dark');
@@ -433,15 +420,9 @@
 
         function updateThemeIcon(isDark) {
             const icon = document.getElementById('theme-icon');
-            if (icon) {
-                icon.className = isDark ? 'fas fa-sun text-xs text-yellow-300' : 'fas fa-moon text-xs';
-            }
+            if (icon) icon.className = isDark ? 'fas fa-sun text-xs text-yellow-300' : 'fas fa-moon text-xs';
         }
-        // DOM読み込み完了時にアイコン状態を合わせる
-        window.addEventListener('DOMContentLoaded', () => {
-            updateThemeIcon(document.documentElement.classList.contains('dark'));
-        });
-
+        window.addEventListener('DOMContentLoaded', () => { updateThemeIcon(document.documentElement.classList.contains('dark')); });
 
         window.switchView = switchView; window.changeMonth = changeMonth;
         window.openAddTaskModal = () => document.getElementById('modal-add-task').classList.add('active');
@@ -451,42 +432,27 @@
         window.openTaskDetailModal = openTaskDetailModal; window.saveTaskDetail = saveTaskDetail;
         window.deleteTask = deleteTask; window.saveNewRoutine = saveNewRoutine; window.deleteRoutine = deleteRoutine;
 
-        // 🌟 追加: 問題ごとの評価（サブ評価）機能のエクスポート
         window.toggleSubEvaluations = () => {
             const sec = document.getElementById('sub-evaluations-section');
             const mainSec = document.getElementById('main-evaluation-section');
             const btn = document.getElementById('toggle-sub-eval-btn');
-            
             if (sec.classList.contains('hidden')) {
-                // 細かく評価モードON
-                sec.classList.remove('hidden');
-                mainSec.classList.add('opacity-40', 'pointer-events-none', 'grayscale');
+                sec.classList.remove('hidden'); mainSec.classList.add('opacity-40', 'pointer-events-none', 'grayscale');
                 btn.innerHTML = '全体評価に戻す <i class="fas fa-undo ml-1"></i>';
                 if(currentSubEvaluations.length === 0) window.addSubEvaluation();
             } else {
-                // 全体評価モードON
-                sec.classList.add('hidden');
-                mainSec.classList.remove('opacity-40', 'pointer-events-none', 'grayscale');
+                sec.classList.add('hidden'); mainSec.classList.remove('opacity-40', 'pointer-events-none', 'grayscale');
                 btn.innerHTML = '問題ごとに細かく評価する <i class="fas fa-list-ul ml-1"></i>';
             }
         };
 
-        window.addSubEvaluation = () => {
-            currentSubEvaluations.push({ id: Date.now().toString() + Math.random().toString(), name: '', eval: '' });
-            renderSubEvaluations();
-        };
-
-        window.removeSubEvaluation = (id) => {
-            currentSubEvaluations = currentSubEvaluations.filter(x => x.id !== id);
-            renderSubEvaluations();
-        };
-
+        window.addSubEvaluation = () => { currentSubEvaluations.push({ id: Date.now().toString() + Math.random().toString(), name: '', eval: '' }); renderSubEvaluations(); };
+        window.removeSubEvaluation = (id) => { currentSubEvaluations = currentSubEvaluations.filter(x => x.id !== id); renderSubEvaluations(); };
         window.updateSubEvalName = (id, val) => { const item = currentSubEvaluations.find(x => x.id === id); if(item) item.name = val; };
         window.updateSubEvalMark = (id, val) => { const item = currentSubEvaluations.find(x => x.id === id); if(item) item.eval = val; };
 
         function renderSubEvaluations() {
-            const list = document.getElementById('sub-evaluations-list');
-            list.innerHTML = currentSubEvaluations.map(item => `
+            document.getElementById('sub-evaluations-list').innerHTML = currentSubEvaluations.map(item => `
                 <div class="flex items-center space-x-2 bg-white dark:bg-gray-700 p-2 rounded-xl shadow-sm border border-gray-100 dark:border-gray-600">
                     <input type="text" value="${escapeHTML(item.name)}" onchange="updateSubEvalName('${item.id}', this.value)" class="flex-grow border-none bg-gray-50 dark:bg-gray-600 dark:text-white p-2.5 rounded-lg text-sm focus:ring-2 focus:ring-purple-400 outline-none" placeholder="例: 問1">
                     <select onchange="updateSubEvalMark('${item.id}', this.value)" class="w-24 border-none bg-gray-50 dark:bg-gray-600 dark:text-white p-2.5 rounded-lg text-sm focus:ring-2 focus:ring-purple-400 outline-none appearance-none font-bold text-center">
@@ -532,7 +498,10 @@
         window.handleLogout = async () => { if (confirm("ログアウトしますか？")) await signOut(auth); };
 
         const initAuth = async () => {
-            document.getElementById('env-status').innerText = isUsingPreviewDB ? "Preview (Test DB)" : "Production (Your DB)";
+            const envStatusEl = document.getElementById('env-status');
+            if (envStatusEl) {
+                envStatusEl.innerText = isUsingPreviewDB ? "Preview (Test DB)" : "Production (Your DB)";
+            }
             if (isUsingPreviewDB && typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                 try { await signInWithCustomToken(auth, __initial_auth_token); } catch(e) { console.error(e); }
             }
@@ -543,16 +512,28 @@
             if (user) {
                 currentUser = user; document.getElementById('display-user-id').innerText = user.uid;
                 document.getElementById('auth-screen').style.display = 'none'; document.getElementById('main-app').style.display = 'flex';
-                setupListeners(); updateCountdowns(); populateSelects();
+                setupListeners(); updateCountdowns(); populateSelects(); buildWeightInputs();
             } else {
                 currentUser = null;
                 document.getElementById('auth-screen').style.display = 'flex'; document.getElementById('main-app').style.display = 'none';
-                if (unsubTasks) unsubTasks(); if (unsubRoutines) unsubRoutines();
-                tasks = []; routines = []; isTasksLoaded = false; isRoutinesLoaded = false; initialRoutineApplied = false;
+                if (unsubTasks) unsubTasks(); if (unsubRoutines) unsubRoutines(); if (unsubProfile) unsubProfile();
+                tasks = []; routines = []; userProfile = { targetUniv: '', targetFaculty: '', weights: {} };
+                isTasksLoaded = false; isRoutinesLoaded = false; initialRoutineApplied = false;
             }
         });
 
         window.onload = () => { initAuth(); setInterval(updateCountdowns, 1000 * 60 * 60); updateThemeIcon(document.documentElement.classList.contains('dark')); };
+
+        // 🌟 追加: 配点入力フォームの動的生成
+        function buildWeightInputs() {
+            const container = document.getElementById('weight-inputs-container');
+            container.innerHTML = SUBJECTS.map(s => `
+                <div class="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-xl border border-gray-100 dark:border-gray-700">
+                    <label class="block text-[10px] font-bold text-gray-500 dark:text-gray-400 mb-1">${s}</label>
+                    <input type="number" id="weight-${s}" class="w-full bg-transparent border-b-2 border-gray-300 dark:border-gray-600 focus:border-pink-500 outline-none text-sm font-bold text-center dark:text-white pb-1 transition-colors" placeholder="0">
+                </div>
+            `).join('');
+        }
 
         function populateSelects() {
             const html = SUBJECTS.map(s => `<option value="${s}">${s}</option>`).join('');
@@ -562,7 +543,7 @@
 
         function setupListeners() {
             if (!currentUser) return;
-            if (unsubTasks) unsubTasks(); if (unsubRoutines) unsubRoutines();
+            if (unsubTasks) unsubTasks(); if (unsubRoutines) unsubRoutines(); if(unsubProfile) unsubProfile();
 
             unsubTasks = onSnapshot(getCollectionRef('tasks'), async (snapshot) => {
                 tasks = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
@@ -576,6 +557,15 @@
                 isRoutinesLoaded = true;
                 if (!initialRoutineApplied) tryApplyInitialRoutines(); else checkAndApplyRoutines(getActiveDateStr());
                 if(document.getElementById('view-settings').classList.contains('active')) renderSettings();
+            }, e => console.error(e));
+
+            // 🌟 追加: プロフィールのリアルタイム監視
+            unsubProfile = onSnapshot(getDocRef('profile', 'data'), (docSnap) => {
+                if (docSnap.exists()) {
+                    userProfile = docSnap.data();
+                    if(document.getElementById('view-settings').classList.contains('active')) renderSettings();
+                    if(document.getElementById('view-analytics').classList.contains('active')) renderAnalytics();
+                }
             }, e => console.error(e));
         }
 
@@ -634,7 +624,8 @@
             const now = new Date();
             const cd = (dateStr, elId) => {
                 const diff = Math.ceil((new Date(dateStr) - now) / (1000 * 60 * 60 * 24));
-                document.getElementById(elId).innerText = diff > 0 ? diff : 0;
+                const el = document.getElementById(elId);
+                if (el) el.innerText = diff > 0 ? diff : 0;
             };
             cd('2027-01-16T00:00:00', 'cd-common'); cd('2027-02-25T00:00:00', 'cd-second');
         }
@@ -642,17 +633,15 @@
         function switchView(viewName) {
             document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active', 'text-pink-500', 'dark:text-pink-400'));
-            
             document.getElementById(`view-${viewName}`).classList.add('active');
             const btn = document.getElementById(`nav-${viewName}`);
             btn.classList.add('active', 'text-pink-500', 'dark:text-pink-400'); 
             btn.classList.remove('text-gray-400', 'dark:text-gray-500');
             
-            // 🌟 追加: タブのアイコンをピョコンと跳ねさせるマイクロインタラクション
             const icon = btn.querySelector('i');
             if (icon) {
                 icon.classList.remove('animate-bounce-slight');
-                void icon.offsetWidth; // アニメーションをリセットするためのハック
+                void icon.offsetWidth;
                 icon.classList.add('animate-bounce-slight');
             }
 
@@ -669,12 +658,10 @@
         }
 
         function createTaskHTML(t) {
-            // 🌟 変更: 詳細評価がある場合のバッジを追加
             let detailBadge = '';
             if (t.subEvaluations && t.subEvaluations.length > 0) {
                 detailBadge = `<span class="ml-2 bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-300 px-1.5 py-0.5 rounded-md font-bold border border-purple-100 dark:border-purple-800">問題別記録あり</span>`;
             }
-
             return `
                 <div class="flex items-center bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-sm hover:shadow-md transition-all border border-gray-50 dark:border-gray-700 relative overflow-hidden mb-3">
                     ${t.isReview ? '<div class="absolute left-0 top-0 bottom-0 w-1.5 bg-orange-400"></div>' : ''}
@@ -711,8 +698,7 @@
             if(!currentUser) return;
             const title = document.getElementById('input-task-title').value.trim();
             if(!title) return alert("タスク名を入力してください");
-            document.getElementById('input-task-title').value = '';
-            window.closeModal('modal-add-task');
+            document.getElementById('input-task-title').value = ''; window.closeModal('modal-add-task');
             await addDoc(getCollectionRef('tasks'), {
                 date: getActiveDateStr(), title, subject: document.getElementById('input-task-subject').value,
                 estimatedTime: parseInt(document.getElementById('input-task-time').value) || 0,
@@ -721,23 +707,15 @@
         }
 
         async function toggleTaskComplete(id, checked) { 
-            // 🌟 追加: チェックを入れた時に紙吹雪を舞わせる
             if (checked) {
-                const colors = ['#f472b6', '#c084fc', '#fb7185']; // テーマカラーの赤・ピンク・紫
-                confetti({
-                    particleCount: 80,
-                    spread: 60,
-                    origin: { y: 0.6 },
-                    colors: colors,
-                    disableForReducedMotion: true // アクセシビリティ配慮
-                });
+                const colors = ['#f472b6', '#c084fc', '#fb7185']; 
+                confetti({ particleCount: 80, spread: 60, origin: { y: 0.6 }, colors: colors, disableForReducedMotion: true });
             }
             await updateDoc(getDocRef('tasks', id), { completed: checked }); 
         }
 
         function openTaskDetailModal(id) {
-            const t = tasks.find(x => x.id === id);
-            if(!t) return;
+            const t = tasks.find(x => x.id === id); if(!t) return;
             document.getElementById('detail-title').innerText = t.title;
             document.getElementById('detail-subject').innerText = t.subject;
             document.getElementById('detail-est-time').innerText = t.estimatedTime;
@@ -746,23 +724,18 @@
             document.getElementById('detail-note').value = t.note || '';
             document.querySelectorAll('input[name="evaluation"]').forEach(el => el.checked = (el.value === t.evaluation));
             
-            // 🌟 追加: サブ評価の状態を復元
             currentSubEvaluations = t.subEvaluations || [];
             const sec = document.getElementById('sub-evaluations-section');
             const mainSec = document.getElementById('main-evaluation-section');
             const btn = document.getElementById('toggle-sub-eval-btn');
             
             if (currentSubEvaluations.length > 0) {
-                sec.classList.remove('hidden');
-                mainSec.classList.add('opacity-40', 'pointer-events-none', 'grayscale');
-                btn.innerHTML = '全体評価に戻す <i class="fas fa-undo ml-1"></i>';
-                renderSubEvaluations();
+                sec.classList.remove('hidden'); mainSec.classList.add('opacity-40', 'pointer-events-none', 'grayscale');
+                btn.innerHTML = '全体評価に戻す <i class="fas fa-undo ml-1"></i>'; renderSubEvaluations();
             } else {
-                sec.classList.add('hidden');
-                mainSec.classList.remove('opacity-40', 'pointer-events-none', 'grayscale');
+                sec.classList.add('hidden'); mainSec.classList.remove('opacity-40', 'pointer-events-none', 'grayscale');
                 btn.innerHTML = '問題ごとに細かく評価する <i class="fas fa-list-ul ml-1"></i>';
             }
-
             document.getElementById('modal-task-detail').classList.add('active');
         }
 
@@ -770,76 +743,47 @@
             const id = document.getElementById('detail-task-id').value;
             const t = tasks.find(x => x.id === id);
             const isDetailedMode = !document.getElementById('sub-evaluations-section').classList.contains('hidden');
-            
-            let finalEval = null;
-            let finalSubEvals = [];
+            let finalEval = null, finalSubEvals = [];
 
             if (isDetailedMode) {
-                // 細かく評価する場合のバリデーション
-                const isInvalid = currentSubEvaluations.some(x => !x.name.trim() || !x.eval);
-                if (isInvalid) return alert("全ての問題名と評価を入力するか、不要な行を削除してください。");
+                if (currentSubEvaluations.some(x => !x.name.trim() || !x.eval)) return alert("全ての問題名と評価を入力するか、不要な行を削除してください。");
                 if (currentSubEvaluations.length === 0) return alert("少なくとも1つの問題を追加してください。");
                 finalSubEvals = currentSubEvaluations.map(x => ({ name: x.name.trim(), eval: x.eval }));
             } else {
-                // 全体評価のバリデーション
                 const evalNode = document.querySelector('input[name="evaluation"]:checked');
                 finalEval = evalNode ? evalNode.value : null;
                 if (!t.completed && !finalEval) return alert("定着度評価を選択してください。");
-                finalEval = finalEval || t.evaluation; // 既存があれば維持
+                finalEval = finalEval || t.evaluation; 
             }
-
             window.closeModal('modal-task-detail');
 
-            const updates = {
-                completed: true, 
-                actualTime: parseInt(document.getElementById('detail-actual-time').value) || 0,
-                note: document.getElementById('detail-note').value, 
-                evaluation: finalEval,
-                subEvaluations: finalSubEvals
-            };
+            const updates = { completed: true, actualTime: parseInt(document.getElementById('detail-actual-time').value) || 0, note: document.getElementById('detail-note').value, evaluation: finalEval, subEvaluations: finalSubEvals };
             await updateDoc(getDocRef('tasks', id), updates);
 
-            // 🌟 変更: 復習タスクの生成ロジック
-            if (!t.completed && !t.isReview) { // 初回完了時のみ
+            if (!t.completed && !t.isReview) { 
                 const baseDate = new Date(t.date);
-                
                 if (isDetailedMode) {
-                    // 問題ごとの復習タスクを生成（時間は問題数で均等割り）
                     const dividedTime = Math.max(1, Math.floor((updates.actualTime || t.estimatedTime) / finalSubEvals.length));
                     for (const sub of finalSubEvals) {
                         const intervals = REVIEW_INTERVALS[sub.eval];
                         for (const days of intervals) {
                             const rDate = new Date(baseDate); rDate.setDate(rDate.getDate() + days);
-                            await addDoc(getCollectionRef('tasks'), {
-                                date: formatDate(rDate), 
-                                title: `${t.title} [${sub.name}] 【復${days}日後/評${sub.eval}】`,
-                                subject: t.subject, estimatedTime: dividedTime,
-                                actualTime: 0, completed: false, isReview: true, createdAt: new Date().toISOString()
-                            });
+                            await addDoc(getCollectionRef('tasks'), { date: formatDate(rDate), title: `${t.title} [${sub.name}] 【復${days}日後/評${sub.eval}】`, subject: t.subject, estimatedTime: dividedTime, actualTime: 0, completed: false, isReview: true, createdAt: new Date().toISOString() });
                         }
                     }
                 } else if (finalEval) {
-                    // 全体の復習タスクを生成
                     const intervals = REVIEW_INTERVALS[finalEval];
                     for (const days of intervals) {
                         const rDate = new Date(baseDate); rDate.setDate(rDate.getDate() + days);
-                        await addDoc(getCollectionRef('tasks'), {
-                            date: formatDate(rDate), title: `${t.title} 【復${days}日後/評${finalEval}】`,
-                            subject: t.subject, estimatedTime: updates.actualTime || t.estimatedTime,
-                            actualTime: 0, completed: false, isReview: true, createdAt: new Date().toISOString()
-                        });
+                        await addDoc(getCollectionRef('tasks'), { date: formatDate(rDate), title: `${t.title} 【復${days}日後/評${finalEval}】`, subject: t.subject, estimatedTime: updates.actualTime || t.estimatedTime, actualTime: 0, completed: false, isReview: true, createdAt: new Date().toISOString() });
                     }
                 }
             }
         }
         
-        async function deleteTask() {
-            if(confirm("削除しますか？")) { await deleteDoc(getDocRef('tasks', document.getElementById('detail-task-id').value)); window.closeModal('modal-task-detail'); }
-        }
+        async function deleteTask() { if(confirm("削除しますか？")) { await deleteDoc(getDocRef('tasks', document.getElementById('detail-task-id').value)); window.closeModal('modal-task-detail'); } }
 
-        function changeMonth(offset) { 
-            calendarMonthObj.setDate(1); calendarMonthObj.setMonth(calendarMonthObj.getMonth() + offset); renderCalendar(); 
-        }
+        function changeMonth(offset) { calendarMonthObj.setDate(1); calendarMonthObj.setMonth(calendarMonthObj.getMonth() + offset); renderCalendar(); }
         function renderCalendar() {
             const y = calendarMonthObj.getFullYear(), m = calendarMonthObj.getMonth();
             document.getElementById('calendar-month-display').innerText = `${y}年 ${m + 1}月`;
@@ -874,12 +818,12 @@
 
         window.selectCalendarDate = async (dateStr) => { calendarSelectedDateStr = dateStr; await checkAndApplyRoutines(calendarSelectedDateStr); renderCalendar(); renderCalendarTasks(); };
 
-        // 🌟 Chart.jsの文字色をテーマに合わせて更新する関数
         window.updateChartColors = function() {
             const isDark = document.documentElement.classList.contains('dark');
-            Chart.defaults.color = isDark ? '#9CA3AF' : '#6B7280'; // text-gray-400 : text-gray-500
+            Chart.defaults.color = isDark ? '#9CA3AF' : '#6B7280'; 
             if (chartSubjectInstance) chartSubjectInstance.update();
             if (chartEvalInstance) chartEvalInstance.update();
+            if (chartRadarInstance) chartRadarInstance.update();
         };
 
         function renderAnalytics() {
@@ -888,20 +832,63 @@
             const evalData = {'A':0, 'B':0, 'C':0, 'D':0};
             completed.forEach(t => { subData[t.subject||'その他'] += Number(t.actualTime); if(t.evaluation) evalData[t.evaluation]++; });
 
-            // 色合いを赤・ピンク・紫ベースに変更
             const bgColors = ['#F472B6', '#C084FC', '#FB7185', '#34D399', '#FBBF24', '#818CF8', '#9CA3AF'];
             
+            // 🌟 追加: レーダーチャートの描画 (配点 vs 学習時間)
+            const targetWeights = [];
+            const actualTimes = [];
+            let totalWeight = 0;
+            let totalActualTime = 0;
+            
+            SUBJECTS.forEach(s => {
+                const w = parseInt(userProfile.weights[s]) || 0;
+                totalWeight += w;
+                totalActualTime += subData[s];
+            });
+
+            SUBJECTS.forEach(s => {
+                const w = parseInt(userProfile.weights[s]) || 0;
+                targetWeights.push(totalWeight > 0 ? (w / totalWeight * 100).toFixed(1) : 0);
+                actualTimes.push(totalActualTime > 0 ? (subData[s] / totalActualTime * 100).toFixed(1) : 0);
+            });
+
+            if(chartRadarInstance) chartRadarInstance.destroy();
+            chartRadarInstance = new Chart(document.getElementById('chart-radar'), { 
+                type: 'radar', 
+                data: { 
+                    labels: SUBJECTS, 
+                    datasets: [
+                        { label: '志望校の配点比率 (%)', data: targetWeights, borderColor: '#F472B6', backgroundColor: 'rgba(244, 114, 182, 0.3)', borderWidth: 2, pointBackgroundColor: '#F472B6' },
+                        { label: '実際の学習時間比率 (%)', data: actualTimes, borderColor: '#A855F7', backgroundColor: 'rgba(168, 85, 247, 0.3)', borderWidth: 2, pointBackgroundColor: '#A855F7' }
+                    ] 
+                }, 
+                options: { 
+                    responsive: true, maintainAspectRatio: false,
+                    scales: { r: { angleLines: { color: 'rgba(156, 163, 175, 0.2)' }, grid: { color: 'rgba(156, 163, 175, 0.2)' }, pointLabels: { font: { size: 11, weight: 'bold' } }, ticks: { display: false } } },
+                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } }
+                } 
+            });
+
             if(chartSubjectInstance) chartSubjectInstance.destroy();
-            chartSubjectInstance = new Chart(document.getElementById('chart-subject'), { type: 'doughnut', data: { labels: SUBJECTS, datasets: [{ data: SUBJECTS.map(s => subData[s]), backgroundColor: bgColors, borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '70%' } });
+            chartSubjectInstance = new Chart(document.getElementById('chart-subject'), { type: 'doughnut', data: { labels: SUBJECTS, datasets: [{ data: SUBJECTS.map(s => subData[s]), backgroundColor: bgColors, borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'right', labels: {font:{size: 10}} } } } });
 
             if(chartEvalInstance) chartEvalInstance.destroy();
-            chartEvalInstance = new Chart(document.getElementById('chart-evaluation'), { type: 'pie', data: { labels: ['A (完璧)', 'B (やや不安)', 'C (要確認)', 'D (歯が立たず)'], datasets: [{ data: [evalData['A'], evalData['B'], evalData['C'], evalData['D']], backgroundColor: ['#F472B6', '#C084FC', '#FBBF24', '#FB7185'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false } });
+            chartEvalInstance = new Chart(document.getElementById('chart-evaluation'), { type: 'pie', data: { labels: ['A (完璧)', 'B (不安)', 'C (復習)', 'D (無理)'], datasets: [{ data: [evalData['A'], evalData['B'], evalData['C'], evalData['D']], backgroundColor: ['#F472B6', '#C084FC', '#FBBF24', '#FB7185'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: {font:{size: 10}} } } } });
             
-            // 初回描画時にテーマカラーを適用
             window.updateChartColors();
         }
 
+        // 🌟 追加: プロフィール（配点）関連の処理
         function renderSettings() {
+            // プロフィール情報の反映
+            document.getElementById('setting-univ').value = userProfile.targetUniv || '';
+            document.getElementById('setting-fac').value = userProfile.targetFaculty || '';
+            SUBJECTS.forEach(s => {
+                const el = document.getElementById(`weight-${s}`);
+                if (el && userProfile.weights[s] !== undefined) el.value = userProfile.weights[s];
+            });
+
+            // ルーティンの反映
             document.getElementById('routine-list').innerHTML = routines.map(r => `
                 <li class="flex justify-between items-center bg-gray-50 dark:bg-gray-700/50 p-4 rounded-2xl mb-3 border border-gray-100 dark:border-gray-700 transition-colors">
                     <div>
@@ -915,6 +902,86 @@
                 </li>
             `).join('');
         }
+
+        window.saveUserProfile = async () => {
+            if(!currentUser) return;
+            const targetUniv = document.getElementById('setting-univ').value.trim();
+            const targetFaculty = document.getElementById('setting-fac').value.trim();
+            const weights = {};
+            SUBJECTS.forEach(s => {
+                weights[s] = parseInt(document.getElementById(`weight-${s}`).value) || 0;
+            });
+            
+            try {
+                await setDoc(getDocRef('profile', 'data'), { targetUniv, targetFaculty, weights, updatedAt: new Date().toISOString() });
+                alert("志望校と配点情報を保存しました！");
+            } catch(e) { console.error(e); alert("保存に失敗しました。"); }
+        };
+
+        // 🌟 追加: Gemini APIを用いた配点自動検索機能
+        window.autoFetchWeights = async () => {
+            const univ = document.getElementById('setting-univ').value.trim();
+            const fac = document.getElementById('setting-fac').value.trim();
+            if (!univ) return alert("大学名を入力してください。");
+
+            const btn = document.getElementById('btn-auto-fetch');
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> 検索中... (数秒かかります)';
+            btn.disabled = true;
+
+            try {
+                // 指数バックオフによるリトライ処理を含むFetch
+                const payload = {
+                    contents: [{ parts: [{ text: `${univ} ${fac} の一般入試（大学入学共通テストと2次試験の合計など、メインとなる入試方式）の科目ごとの配点を調べ、英語、数学、国語、理科、社会、情報、その他の7科目に分類して、それぞれの配点を数値で返してください。配点がない科目は0にしてください。` }] }],
+                    systemInstruction: { parts: [{ text: "あなたは大学受験の専門家です。最新の入試配点情報を検索し、JSON形式で出力してください。" }] },
+                    tools: [{ google_search: {} }],
+                    generationConfig: {
+                        responseMimeType: "application/json",
+                        responseSchema: {
+                            type: "OBJECT",
+                            properties: {
+                                "英語": { type: "INTEGER" }, "数学": { type: "INTEGER" }, "国語": { type: "INTEGER" },
+                                "理科": { type: "INTEGER" }, "社会": { type: "INTEGER" }, "情報": { type: "INTEGER" }, "その他": { type: "INTEGER" }
+                            }
+                        }
+                    }
+                };
+                
+                let data = null;
+                const delays = [1000, 2000, 4000, 8000];
+                for (let i = 0; i < 5; i++) {
+                    try {
+                        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+                        });
+                        if (res.ok) { data = await res.json(); break; }
+                        if (i === 4) throw new Error("API Fetch failed");
+                    } catch (e) {
+                        if (i === 4) throw e;
+                    }
+                    await new Promise(r => setTimeout(r, delays[i]));
+                }
+
+                const textStr = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (!textStr) throw new Error("No data extracted");
+                
+                const weightsObj = JSON.parse(textStr);
+                SUBJECTS.forEach(s => {
+                    const el = document.getElementById(`weight-${s}`);
+                    if (el && weightsObj[s] !== undefined) el.value = weightsObj[s];
+                });
+                
+                alert("配点情報を取得しました！内容が正しいか確認し、保存ボタンを押してください。");
+
+            } catch(e) {
+                console.error(e);
+                alert("情報の取得に失敗しました。手動で入力をお願いします。");
+            } finally {
+                btn.innerHTML = originalHTML;
+                btn.disabled = false;
+            }
+        };
+
         async function saveNewRoutine() {
             const title = document.getElementById('input-routine-title').value; if(!title) return;
             document.getElementById('input-routine-title').value = ''; window.closeModal('modal-add-routine');
