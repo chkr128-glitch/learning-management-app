@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>志望大学合格最適化マネージャー</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif; background-color: #f9fafb; }
+        .view-section:not(.active) { display: none !important; }
+        .view-section.active { display: block; }
+        #view-calendar.active { display: flex !important; }
+        .tab-btn.active { color: #2563eb; }
+        .modal-overlay { display: none; }
+        .modal-overlay.active { display: flex; }
+        .modal-content { max-height: 90vh; overflow-y: auto; }
+        .pb-safe { padding-bottom: env(safe-area-inset-bottom, 1rem); }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+        .calendar-cell { min-height: 80px; }
+    </style>
+</head>
+<body class="text-gray-800 h-screen overflow-hidden flex flex-col">
+
+    <!-- 🌟 ローディング画面 -->
+    <div id="loading-screen" class="absolute inset-0 bg-gray-50 z-50 flex flex-col items-center justify-center">
+        <i class="fas fa-spinner fa-spin text-4xl text-blue-500 mb-4"></i>
+        <p class="text-gray-500">読み込み中...</p>
+    </div>
+
+    <!-- 🌟 認証（ログイン・新規登録）画面 -->
+    <div id="auth-screen" class="absolute inset-0 bg-gray-50 z-40 hidden flex-col items-center justify-center p-4">
+        <div class="bg-white p-6 rounded-xl shadow-lg w-full max-w-sm">
+            <h2 class="text-2xl font-bold text-center text-blue-700 mb-6" id="auth-title">ログイン</h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">メールアドレス</label>
+                    <input type="email" id="auth-email" class="w-full border p-2 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="email@example.com">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">パスワード</label>
+                    <input type="password" id="auth-password" class="w-full border p-2 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="6文字以上">
+                </div>
+                <button id="auth-btn-action" onclick="performAuthAction()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition shadow-md">ログイン</button>
+            </div>
+            <div class="mt-4 text-center">
+                <button onclick="toggleAuthMode()" id="auth-toggle-btn" class="text-xs text-blue-500 hover:underline">アカウントをお持ちでない方はこちら（新規登録）</button>
+            </div>
+            <p id="auth-error-msg" class="text-red-500 text-xs text-center mt-3 min-h-[1rem]"></p>
+        </div>
+    </div>
+
+    <!-- 🌟 メインアプリ領域（ログイン後に表示） -->
+    <div id="main-app" class="flex-1 flex-col hidden w-full h-full relative">
+        
+        <!-- Header -->
+        <header class="bg-blue-700 text-white p-3 shadow-md fixed w-full z-20 top-0 flex justify-between items-center h-14">
+            <div><h1 class="text-sm font-bold opacity-80">志望校合格マネージャー</h1></div>
+            <div class="flex space-x-3 text-xs text-right">
+                <div><p class="opacity-70">共通テストまで</p><p class="font-bold text-lg"><span id="cd-common">--</span> <span class="text-xs font-normal">日</span></p></div>
+                <div><p class="opacity-70">2次試験まで</p><p class="font-bold text-lg text-yellow-300"><span id="cd-second">--</span> <span class="text-xs font-normal text-white">日</span></p></div>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 overflow-y-auto mt-14 mb-16 pb-6 relative w-full max-w-lg mx-auto bg-gray-50 shadow-inner" id="main-content">
+            
+            <!-- Dashboard View -->
+            <div id="view-dashboard" class="view-section active p-4">
+                <h2 id="current-date-display" class="text-xl font-bold text-gray-800 mb-4">今日のタスク</h2>
+                <div class="mb-5 bg-gradient-to-r from-blue-600 to-indigo-600 p-4 rounded-xl shadow-md text-white">
+                    <p class="text-sm opacity-80">本日の残り推定学習時間</p>
+                    <p class="text-3xl font-bold mt-1"><span id="remaining-time">0</span> <span class="text-base font-normal">分</span></p>
+                </div>
+                <div class="mb-6">
+                    <h3 class="font-bold text-gray-700 mb-3 flex justify-between items-end border-b pb-1">
+                        未完了のタスク <span class="bg-gray-200 text-gray-700 text-xs px-2 py-1 rounded-full" id="incomplete-count">0</span>
+                    </h3>
+                    <div id="incomplete-tasks" class="space-y-3"></div>
+                </div>
+                <div>
+                    <h3 class="font-bold text-gray-700 mb-3 flex justify-between items-end border-b pb-1">
+                        完了済みのタスク <span class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full" id="completed-count">0</span>
+                    </h3>
+                    <div id="completed-tasks" class="space-y-3 opacity-70"></div>
+                </div>
+                <button onclick="openAddTaskModal()" class="fixed bottom-20 right-4 lg:right-[calc(50%-15rem)] w-14 h-14 bg-blue-600 text-white rounded-full shadow-lg flex items-center justify-center text-xl hover:bg-blue-700 transition transform hover:scale-105 z-10">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+
+            <!-- Calendar View -->
+            <div id="view-calendar" class="view-section p-4 h-full flex-col">
+                <div class="flex justify-between items-center mb-4 bg-white p-3 rounded-xl shadow-sm flex-shrink-0">
+                    <button onclick="changeMonth(-1)" class="p-2 text-gray-500"><i class="fas fa-chevron-left"></i></button>
+                    <h2 id="calendar-month-display" class="text-lg font-bold">年月</h2>
+                    <button onclick="changeMonth(1)" class="p-2 text-gray-500"><i class="fas fa-chevron-right"></i></button>
+                </div>
+                <div class="bg-white rounded-xl shadow-sm flex-shrink-0 overflow-hidden flex flex-col mb-4">
+                    <div class="grid grid-cols-7 text-center text-xs font-bold text-gray-500 py-2 border-b">
+                        <div class="text-red-500">日</div><div>月</div><div>火</div><div>水</div><div>木</div><div>金</div><div class="text-blue-500">土</div>
+                    </div>
+                    <div id="calendar-grid" class="calendar-grid bg-gray-100 p-1"></div>
+                </div>
+                <div class="flex-1 min-h-0 flex flex-col">
+                    <h3 id="calendar-selected-date-display" class="font-bold text-gray-700 mb-2 flex justify-between items-end pb-1 border-b flex-shrink-0">
+                        選択日のタスク <span class="bg-gray-200 text-gray-700 text-xs px-2 py-1 rounded-full" id="calendar-task-count">0</span>
+                    </h3>
+                    <div id="calendar-tasks-container" class="space-y-3 overflow-y-auto flex-1 pb-10"></div>
+                </div>
+            </div>
+
+            <!-- Analytics View -->
+            <div id="view-analytics" class="view-section p-4">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">学習分析</h2>
+                <div class="bg-white p-4 rounded-xl shadow-sm mb-4">
+                    <h3 class="text-sm font-bold text-gray-600 mb-4 text-center">科目別 累計学習時間</h3>
+                    <div class="relative h-64 w-full"><canvas id="chart-subject"></canvas></div>
+                </div>
+                <div class="bg-white p-4 rounded-xl shadow-sm mb-4">
+                    <h3 class="text-sm font-bold text-gray-600 mb-4 text-center">理解度（定着度）分布</h3>
+                    <div class="relative h-64 w-full"><canvas id="chart-evaluation"></canvas></div>
+                </div>
+            </div>
+
+            <!-- Settings View (ログアウトボタン追加) -->
+            <div id="view-settings" class="view-section p-4">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">設定・管理機能</h2>
+                <div class="bg-white rounded-xl shadow-sm p-4 mb-4">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="font-bold text-gray-700">固定ルーティン</h3>
+                        <button onclick="openAddRoutineModal()" class="text-sm bg-blue-100 text-blue-700 px-3 py-1 rounded-full"><i class="fas fa-plus mr-1"></i>追加</button>
+                    </div>
+                    <ul id="routine-list" class="space-y-2"></ul>
+                </div>
+                
+                <!-- 🌟 アカウント管理セクション -->
+                <div class="bg-white rounded-xl shadow-sm p-4 mb-4">
+                    <h3 class="font-bold text-gray-700 mb-4">アカウント管理</h3>
+                    <p class="text-xs text-gray-500 mb-1">ログイン中のユーザーID:</p>
+                    <p class="text-xs font-mono bg-gray-100 p-2 rounded mb-4 break-all text-gray-600" id="display-user-id">---</p>
+                    <button onclick="handleLogout()" class="w-full bg-red-50 text-red-600 font-bold py-2.5 rounded-lg border border-red-200 hover:bg-red-100 transition">ログアウト</button>
+                </div>
+
+                <div class="mt-8 text-center text-xs text-gray-400">
+                    <p>Environment: <span id="env-status" class="font-bold"></span></p>
+                </div>
+            </div>
+        </main>
+
+        <!-- Bottom Navigation -->
+        <nav class="bg-white border-t border-gray-200 fixed bottom-0 w-full z-20 pb-safe shadow-[0_-2px_10px_rgba(0,0,0,0.05)] flex">
+            <div class="flex justify-around w-full max-w-lg mx-auto">
+                <button onclick="switchView('dashboard')" id="nav-dashboard" class="tab-btn active flex flex-col items-center py-3 w-1/4 text-gray-400 hover:text-blue-500">
+                    <i class="fas fa-list-check text-xl mb-1"></i><span class="text-[10px] font-medium">今日</span>
+                </button>
+                <button onclick="switchView('calendar')" id="nav-calendar" class="tab-btn flex flex-col items-center py-3 w-1/4 text-gray-400 hover:text-blue-500">
+                    <i class="far fa-calendar-alt text-xl mb-1"></i><span class="text-[10px] font-medium">カレンダー</span>
+                </button>
+                <button onclick="switchView('analytics')" id="nav-analytics" class="tab-btn flex flex-col items-center py-3 w-1/4 text-gray-400 hover:text-blue-500">
+                    <i class="fas fa-chart-pie text-xl mb-1"></i><span class="text-[10px] font-medium">分析</span>
+                </button>
+                <button onclick="switchView('settings')" id="nav-settings" class="tab-btn flex flex-col items-center py-3 w-1/4 text-gray-400 hover:text-blue-500">
+                    <i class="fas fa-cog text-xl mb-1"></i><span class="text-[10px] font-medium">設定</span>
+                </button>
+            </div>
+        </nav>
+    </div>
+
+    <!-- MODALS -->
+    <!-- Add Task Modal -->
+    <div id="modal-add-task" class="modal-overlay fixed inset-0 bg-black bg-opacity-50 z-50 justify-center items-end sm:items-center" onclick="if(event.target===this) closeModal('modal-add-task')">
+        <div class="modal-content bg-white w-full sm:max-w-md sm:rounded-xl rounded-t-xl p-5 transform transition-transform duration-300 translate-y-0 shadow-2xl">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold">新規タスク追加</h3>
+                <button onclick="closeModal('modal-add-task')" class="text-gray-400 hover:text-gray-700 text-xl"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 mb-1">タスク名</label>
+                    <input type="text" id="input-task-title" class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="例: 青チャート 数学II B 第1章">
+                </div>
+                <div class="flex space-x-3">
+                    <div class="w-1/2">
+                        <label class="block text-xs font-bold text-gray-600 mb-1">科目</label>
+                        <select id="input-task-subject" class="w-full border border-gray-300 rounded-lg p-2"></select>
+                    </div>
+                    <div class="w-1/2">
+                        <label class="block text-xs font-bold text-gray-600 mb-1">予定時間 (分)</label>
+                        <input type="number" id="input-task-time" class="w-full border border-gray-300 rounded-lg p-2" placeholder="60">
+                    </div>
+                </div>
+                <button onclick="saveNewTask()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg mt-4 hover:bg-blue-700">追加する</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Task Detail Modal -->
+    <div id="modal-task-detail" class="modal-overlay fixed inset-0 bg-black bg-opacity-50 z-50 justify-center items-center" onclick="if(event.target===this) closeModal('modal-task-detail')">
+        <div class="modal-content bg-white w-11/12 max-w-md rounded-xl p-5 shadow-2xl relative">
+            <button onclick="closeModal('modal-task-detail')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-700"><i class="fas fa-times text-xl"></i></button>
+            <h3 class="text-lg font-bold mb-1" id="detail-title">タスク名</h3>
+            <p class="text-xs text-gray-500 mb-5"><span id="detail-subject" class="px-2 py-1 rounded bg-gray-100 mr-2">科目</span> 予定: <span id="detail-est-time"></span>分</p>
+            <input type="hidden" id="detail-task-id">
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">実際の学習時間 (分)</label>
+                    <input type="number" id="detail-actual-time" class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">定着度評価</label>
+                    <div class="grid grid-cols-2 gap-2 text-sm">
+                        <label class="border rounded-lg p-2 flex items-center cursor-pointer hover:bg-blue-50 transition-colors"><input type="radio" name="evaluation" value="A" class="mr-2 text-blue-600"> A: 完璧/初見正答</label>
+                        <label class="border rounded-lg p-2 flex items-center cursor-pointer hover:bg-blue-50 transition-colors"><input type="radio" name="evaluation" value="B" class="mr-2 text-blue-600"> B: やや不安/要復習</label>
+                        <label class="border rounded-lg p-2 flex items-center cursor-pointer hover:bg-blue-50 transition-colors"><input type="radio" name="evaluation" value="C" class="mr-2 text-blue-600"> C: 解説見て理解</label>
+                        <label class="border rounded-lg p-2 flex items-center cursor-pointer hover:bg-blue-50 transition-colors"><input type="radio" name="evaluation" value="D" class="mr-2 text-blue-600"> D: 歯が立たず</label>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">学習メモ</label>
+                    <textarea id="detail-note" class="w-full border border-gray-300 rounded-lg p-2 h-20" placeholder="気づきや弱点などをメモ..."></textarea>
+                </div>
+                <div class="flex space-x-3 pt-2">
+                    <button onclick="deleteTask()" class="w-1/4 bg-red-100 text-red-600 font-bold py-3 rounded-lg"><i class="fas fa-trash"></i></button>
+                    <button onclick="saveTaskDetail()" class="w-3/4 bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700">完了して記録する</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Routine Modal -->
+    <div id="modal-add-routine" class="modal-overlay fixed inset-0 bg-black bg-opacity-50 z-50 justify-center items-center" onclick="if(event.target===this) closeModal('modal-add-routine')">
+        <div class="modal-content bg-white w-11/12 max-w-md rounded-xl p-5 shadow-2xl">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold">固定ルーティン追加</h3>
+                <button onclick="closeModal('modal-add-routine')" class="text-gray-400"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 mb-1">ルーティン名</label>
+                    <input type="text" id="input-routine-title" class="w-full border p-2 rounded-lg" placeholder="例: ターゲット1900">
+                </div>
+                <div class="flex space-x-3">
+                    <div class="w-1/2">
+                        <label class="block text-xs font-bold text-gray-600 mb-1">科目</label>
+                        <select id="input-routine-subject" class="w-full border p-2 rounded-lg"></select>
+                    </div>
+                    <div class="w-1/2">
+                        <label class="block text-xs font-bold text-gray-600 mb-1">予定時間(分)</label>
+                        <input type="number" id="input-routine-time" class="w-full border p-2 rounded-lg" placeholder="15">
+                    </div>
+                </div>
+                <button onclick="saveNewRoutine()" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-lg mt-4">追加する</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        // 🌟 signInWithEmailAndPassword (ログイン), createUserWithEmailAndPassword (新規登録), signOut (ログアウト) を追加
+        import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, setDoc, getDoc, getDocs, onSnapshot, addDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // ============================================================================
+        // 🔴🔴🔴 あなたの Firebase 設定情報 🔴🔴🔴
+        // ============================================================================
+        const MY_FIREBASE_CONFIG = {
+            apiKey: "AIzaSyAyzCLL-Y_xuQ0RzHurN0r5UvqdNm-Yomw",
+            authDomain: "learning-manager-829f4.firebaseapp.com",
+            projectId: "learning-manager-829f4",
+            storageBucket: "learning-manager-829f4.firebasestorage.app",
+            messagingSenderId: "530087746816",
+            appId: "1:530087746816:web:a041336d78584ca4bc67e5"
+        };
+
+        const isPreviewEnv = typeof __firebase_config !== 'undefined';
+        const useMyConfig = MY_FIREBASE_CONFIG.apiKey !== "";
+        // 🌟 設定が入力されている場合は、AI環境でもご自身の本番Firebaseを使うように設定
+        const finalConfig = (isPreviewEnv && !useMyConfig) ? JSON.parse(__firebase_config) : MY_FIREBASE_CONFIG;
+        const isUsingPreviewDB = isPreviewEnv && !useMyConfig;
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+        const app = initializeApp(finalConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Firestoreのパス生成 (本番Firebaseに直接接続)
+        function getCollectionRef(collectionName) {
+            if (isUsingPreviewDB) return collection(db, 'artifacts', appId, 'users', currentUser.uid, collectionName);
+            return collection(db, 'users', currentUser.uid, collectionName);
+        }
+        function getDocRef(collectionName, docId) {
+            if (isUsingPreviewDB) return doc(db, 'artifacts', appId, 'users', currentUser.uid, collectionName, docId);
+            return doc(db, 'users', currentUser.uid, collectionName, docId);
+        }
+
+        // ============================================================================
+        
+        // Constants & State
+        const SUBJECTS = ['英語', '数学', '国語', '理科', '社会', '情報', 'その他'];
+        const SUBJECT_COLORS = { '英語': 'bg-pink-100 text-pink-800', '数学': 'bg-blue-100 text-blue-800', '国語': 'bg-red-100 text-red-800', '理科': 'bg-green-100 text-green-800', '社会': 'bg-yellow-100 text-yellow-800', '情報': 'bg-purple-100 text-purple-800', 'その他': 'bg-gray-100 text-gray-800' };
+        const REVIEW_INTERVALS = { 'A': [1, 7, 30], 'B': [1, 3, 7, 14, 30], 'C': [1, 3, 7], 'D': [1, 2, 3, 7, 14, 30] };
+
+        let currentUser = null;
+        let tasks = [], routines = [];
+        let calendarSelectedDateStr = formatDate(new Date()); 
+        let calendarMonthObj = new Date(); calendarMonthObj.setDate(1);
+        let unsubTasks = null, unsubRoutines = null;
+        let chartSubjectInstance = null, chartEvalInstance = null;
+        let isApplyingRoutines = false, isTasksLoaded = false, isRoutinesLoaded = false, initialRoutineApplied = false;
+
+        // Utilities
+        function formatDate(date) { const y = date.getFullYear(), m = String(date.getMonth() + 1).padStart(2, '0'), d = String(date.getDate()).padStart(2, '0'); return `${y}-${m}-${d}`; }
+        function parseDateLocal(str) { const parts = str.split('-'); return new Date(parts[0], parts[1] - 1, parts[2]); }
+        function escapeHTML(str) { return str ? str.replace(/[&<>'"]/g, tag => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'}[tag])) : ''; }
+        function getActiveDateStr() { return document.querySelector('.view-section.active').id === 'view-calendar' ? calendarSelectedDateStr : formatDate(new Date()); }
+
+        // Global EXPORTS
+        window.switchView = switchView; window.changeMonth = changeMonth;
+        window.openAddTaskModal = () => document.getElementById('modal-add-task').classList.add('active');
+        window.openAddRoutineModal = () => document.getElementById('modal-add-routine').classList.add('active');
+        window.closeModal = (id) => document.getElementById(id).classList.remove('active');
+        window.saveNewTask = saveNewTask; window.toggleTaskComplete = toggleTaskComplete;
+        window.openTaskDetailModal = openTaskDetailModal; window.saveTaskDetail = saveTaskDetail;
+        window.deleteTask = deleteTask; window.saveNewRoutine = saveNewRoutine; window.deleteRoutine = deleteRoutine;
+
+        // 🌟 認証・ログイン機能の実装 🌟
+        let isLoginMode = true;
+        window.toggleAuthMode = () => {
+            isLoginMode = !isLoginMode;
+            document.getElementById('auth-title').innerText = isLoginMode ? "ログイン" : "新規登録";
+            document.getElementById('auth-btn-action').innerText = isLoginMode ? "ログイン" : "登録してはじめる";
+            document.getElementById('auth-toggle-btn').innerText = isLoginMode ? "アカウントをお持ちでない方はこちら（新規登録）" : "すでにアカウントをお持ちの方はこちら（ログイン）";
+            document.getElementById('auth-error-msg').innerText = "";
+        };
+
+        window.performAuthAction = async () => {
+            const email = document.getElementById('auth-email').value.trim();
+            const password = document.getElementById('auth-password').value;
+            const errorEl = document.getElementById('auth-error-msg');
+            errorEl.innerText = "";
+
+            if (!email || !password) return errorEl.innerText = "メールアドレスとパスワードを入力してください。";
+
+            try {
+                if (isLoginMode) {
+                    await signInWithEmailAndPassword(auth, email, password);
+                } else {
+                    await createUserWithEmailAndPassword(auth, email, password);
+                }
+            } catch (error) {
+                let msg = "エラーが発生しました。";
+                if (error.code === 'auth/invalid-email') msg = "メールアドレスの形式が正しくありません。";
+                if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') msg = "メールまたはパスワードが違います。";
+                if (error.code === 'auth/email-already-in-use') msg = "このメールアドレスは既に登録されています。";
+                if (error.code === 'auth/weak-password') msg = "パスワードは6文字以上にしてください。";
+                errorEl.innerText = msg;
+            }
+        };
+
+        window.handleLogout = async () => {
+            if (confirm("ログアウトしますか？")) {
+                await signOut(auth);
+            }
+        };
+
+        // 初期化処理
+        const initAuth = async () => {
+            document.getElementById('env-status').innerText = isUsingPreviewDB ? "Preview (Test DB)" : "Production (Your DB)";
+            // プレビューのテスト用DBを使用している場合のみ、提供トークンで自動ログインを試みる（Canvas環境用）
+            if (isUsingPreviewDB && typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                try { await signInWithCustomToken(auth, __initial_auth_token); } catch(e) { console.error(e); }
+            }
+            // ご自身のDBを使用する場合は、onAuthStateChangedのコールバックに任せる
+        };
+
+        // ログイン状態の監視
+        onAuthStateChanged(auth, (user) => {
+            document.getElementById('loading-screen').style.display = 'none';
+            if (user) {
+                // ログイン成功時
+                currentUser = user;
+                document.getElementById('display-user-id').innerText = user.uid;
+                
+                // 画面切り替え
+                document.getElementById('auth-screen').style.display = 'none';
+                document.getElementById('main-app').style.display = 'flex';
+                
+                setupListeners();
+                updateCountdowns();
+                populateSelects();
+            } else {
+                // 未ログイン・ログアウト時
+                currentUser = null;
+                
+                // 画面切り替え
+                document.getElementById('auth-screen').style.display = 'flex';
+                document.getElementById('main-app').style.display = 'none';
+                
+                // データのクリーンアップ
+                if (unsubTasks) unsubTasks();
+                if (unsubRoutines) unsubRoutines();
+                tasks = [];
+                routines = [];
+                isTasksLoaded = false;
+                isRoutinesLoaded = false;
+                initialRoutineApplied = false;
+            }
+        });
+
+        window.onload = () => { initAuth(); setInterval(updateCountdowns, 1000 * 60 * 60); };
+
+        function populateSelects() {
+            const html = SUBJECTS.map(s => `<option value="${s}">${s}</option>`).join('');
+            document.getElementById('input-task-subject').innerHTML = html;
+            document.getElementById('input-routine-subject').innerHTML = html;
+        }
+
+        // ============================================================================
+        // 以降のタスク管理機能・リスナーなどは今まで通り変更なし
+        // ============================================================================
+
+        function setupListeners() {
+            if (!currentUser) return;
+            if (unsubTasks) unsubTasks(); if (unsubRoutines) unsubRoutines();
+
+            unsubTasks = onSnapshot(getCollectionRef('tasks'), async (snapshot) => {
+                tasks = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
+                tasks.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+                isTasksLoaded = true;
+                tryApplyInitialRoutines();
+                renderCurrentView();
+            }, e => console.error(e));
+
+            unsubRoutines = onSnapshot(getCollectionRef('routines'), (snapshot) => {
+                routines = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
+                routines.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+                isRoutinesLoaded = true;
+                if (!initialRoutineApplied) tryApplyInitialRoutines();
+                else checkAndApplyRoutines(getActiveDateStr());
+                if(document.getElementById('view-settings').classList.contains('active')) renderSettings();
+            }, e => console.error(e));
+        }
+
+        async function tryApplyInitialRoutines() {
+            if (isTasksLoaded && isRoutinesLoaded && !initialRoutineApplied) {
+                initialRoutineApplied = true;
+                await cleanupDuplicateRoutines(); 
+                await checkAndApplyRoutines(formatDate(new Date()));
+            }
+        }
+
+        async function cleanupDuplicateRoutines() {
+            if (!currentUser) return;
+            const duplicateIdsToDelete = []; const routineTaskMap = {};
+            tasks.forEach(t => {
+                if (t.isRoutine) {
+                    const key = `${t.date}_${t.title}`;
+                    if (!routineTaskMap[key]) routineTaskMap[key] = [];
+                    routineTaskMap[key].push(t);
+                }
+            });
+            for (const key in routineTaskMap) {
+                const group = routineTaskMap[key];
+                if (group.length > 1) {
+                    group.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+                    for (let i = 1; i < group.length; i++) {
+                        const t = group[i];
+                        if (!t.completed && (t.actualTime === 0 || !t.actualTime)) duplicateIdsToDelete.push(t.id);
+                    }
+                }
+            }
+            if (duplicateIdsToDelete.length > 0) {
+                await Promise.all(duplicateIdsToDelete.map(id => deleteDoc(getDocRef('tasks', id)))).catch(e => console.error(e));
+            }
+        }
+
+        async function checkAndApplyRoutines(targetDateStr) {
+            if (!currentUser || routines.length === 0 || isApplyingRoutines) return;
+            if (!isTasksLoaded || !isRoutinesLoaded) return; 
+            isApplyingRoutines = true; 
+            try {
+                const tasksOnDate = tasks.filter(t => t.date === targetDateStr);
+                const promises = [];
+                for (const routine of routines) {
+                    if (!tasksOnDate.some(t => t.title === routine.title && t.isRoutine === true)) {
+                        tasksOnDate.push({ title: routine.title, isRoutine: true, date: targetDateStr });
+                        promises.push(addDoc(getCollectionRef('tasks'), {
+                            date: targetDateStr, title: routine.title, subject: routine.subject,
+                            estimatedTime: routine.estimatedTime, actualTime: 0, completed: false, isRoutine: true, createdAt: new Date().toISOString()
+                        }));
+                    }
+                }
+                if (promises.length > 0) await Promise.all(promises);
+            } catch(e) { console.error(e); } finally { isApplyingRoutines = false; }
+        }
+
+        function updateCountdowns() {
+            const now = new Date();
+            const cd = (dateStr, elId) => {
+                const diff = Math.ceil((new Date(dateStr) - now) / (1000 * 60 * 60 * 24));
+                document.getElementById(elId).innerText = diff > 0 ? diff : 0;
+            };
+            cd('2027-01-16T00:00:00', 'cd-common'); cd('2027-02-25T00:00:00', 'cd-second');
+        }
+
+        function switchView(viewName) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active', 'text-blue-500'));
+            document.getElementById(`view-${viewName}`).classList.add('active');
+            const btn = document.getElementById(`nav-${viewName}`);
+            btn.classList.add('active', 'text-blue-500'); btn.classList.remove('text-gray-400');
+            if (viewName === 'analytics') setTimeout(renderAnalytics, 50);
+            if (viewName === 'settings') renderSettings();
+            if (viewName === 'calendar') renderCalendar();
+        }
+
+        function renderCurrentView() {
+            const activeView = document.querySelector('.view-section.active').id;
+            if (activeView === 'view-dashboard') renderDashboard();
+            if (activeView === 'view-calendar') { renderCalendar(); renderCalendarTasks(); }
+            if (activeView === 'view-analytics') renderAnalytics();
+        }
+
+        function createTaskHTML(t) {
+            return `
+                <div class="flex items-center bg-white p-3 rounded-lg shadow-sm border ${t.isReview ? 'border-l-4 border-l-orange-400' : 'border-gray-100'}">
+                    <input type="checkbox" ${t.completed ? 'checked' : ''} class="w-6 h-6 text-blue-600 rounded mr-3 flex-shrink-0" onchange="toggleTaskComplete('${t.id}', this.checked)">
+                    <div class="flex-grow cursor-pointer truncate" onclick="openTaskDetailModal('${t.id}')">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="${t.completed ? 'line-through text-gray-400' : 'text-gray-800'} font-bold text-sm truncate mr-2">${escapeHTML(t.title)}</span>
+                            <span class="text-[10px] px-2 py-0.5 rounded-full ${SUBJECT_COLORS[t.subject] || SUBJECT_COLORS['その他']}">${escapeHTML(t.subject)}</span>
+                        </div>
+                        <div class="text-[11px] text-gray-500">
+                            予定: ${t.estimatedTime}分
+                            ${t.isReview ? '<span class="text-orange-500 ml-1">復習</span>' : ''}
+                            ${t.completed && t.evaluation ? `<span class="ml-2 bg-blue-50 text-blue-700 px-1 rounded font-bold border">評${t.evaluation}</span>` : ''}
+                        </div>
+                    </div>
+                </div>`;
+        }
+
+        function renderDashboard() {
+            const todayStr = formatDate(new Date());
+            const dayTasks = tasks.filter(t => t.date === todayStr);
+            const incomplete = dayTasks.filter(t => !t.completed);
+            const completed = dayTasks.filter(t => t.completed);
+
+            document.getElementById('remaining-time').innerText = incomplete.reduce((sum, t) => sum + (Number(t.estimatedTime) || 0), 0);
+            document.getElementById('incomplete-count').innerText = incomplete.length;
+            document.getElementById('completed-count').innerText = completed.length;
+            document.getElementById('incomplete-tasks').innerHTML = incomplete.length ? incomplete.map(createTaskHTML).join('') : '<p class="text-xs text-gray-400 text-center py-2">未完了タスクなし</p>';
+            document.getElementById('completed-tasks').innerHTML = completed.length ? completed.map(createTaskHTML).join('') : '';
+        }
+
+        async function saveNewTask() {
+            if(!currentUser) return;
+            const title = document.getElementById('input-task-title').value.trim();
+            if(!title) return alert("タスク名を入力してください");
+            document.getElementById('input-task-title').value = '';
+            window.closeModal('modal-add-task');
+            await addDoc(getCollectionRef('tasks'), {
+                date: getActiveDateStr(),
+                title, subject: document.getElementById('input-task-subject').value,
+                estimatedTime: parseInt(document.getElementById('input-task-time').value) || 0,
+                actualTime: 0, completed: false, createdAt: new Date().toISOString()
+            });
+        }
+
+        async function toggleTaskComplete(id, checked) { await updateDoc(getDocRef('tasks', id), { completed: checked }); }
+
+        function openTaskDetailModal(id) {
+            const t = tasks.find(x => x.id === id);
+            if(!t) return;
+            document.getElementById('detail-title').innerText = t.title;
+            document.getElementById('detail-subject').innerText = t.subject;
+            document.getElementById('detail-est-time').innerText = t.estimatedTime;
+            document.getElementById('detail-task-id').value = t.id;
+            document.getElementById('detail-actual-time').value = t.actualTime || t.estimatedTime;
+            document.getElementById('detail-note').value = t.note || '';
+            document.querySelectorAll('input[name="evaluation"]').forEach(el => el.checked = (el.value === t.evaluation));
+            document.getElementById('modal-task-detail').classList.add('active');
+        }
+
+        async function saveTaskDetail() {
+            const id = document.getElementById('detail-task-id').value;
+            const t = tasks.find(x => x.id === id);
+            const evalNode = document.querySelector('input[name="evaluation"]:checked');
+            const evaluation = evalNode ? evalNode.value : null;
+
+            if (!t.completed && !evaluation) return alert("定着度評価を選択してください。");
+            window.closeModal('modal-task-detail');
+
+            await updateDoc(getDocRef('tasks', id), {
+                completed: true, actualTime: parseInt(document.getElementById('detail-actual-time').value) || 0,
+                note: document.getElementById('detail-note').value, evaluation: evaluation || t.evaluation
+            });
+
+            if(evaluation && !t.evaluation && !t.isReview) {
+                const intervals = REVIEW_INTERVALS[evaluation];
+                const baseDate = new Date(t.date);
+                for (const days of intervals) {
+                    const rDate = new Date(baseDate); rDate.setDate(rDate.getDate() + days);
+                    await addDoc(getCollectionRef('tasks'), {
+                        date: formatDate(rDate), title: `${t.title} 【復${days}日後/評${evaluation}】`,
+                        subject: t.subject, estimatedTime: t.actualTime || t.estimatedTime,
+                        actualTime: 0, completed: false, isReview: true, createdAt: new Date().toISOString()
+                    });
+                }
+            }
+        }
+        
+        async function deleteTask() {
+            if(confirm("削除しますか？")) {
+                await deleteDoc(getDocRef('tasks', document.getElementById('detail-task-id').value));
+                window.closeModal('modal-task-detail');
+            }
+        }
+
+        function changeMonth(offset) { 
+            calendarMonthObj.setDate(1); calendarMonthObj.setMonth(calendarMonthObj.getMonth() + offset); renderCalendar(); 
+        }
+        function renderCalendar() {
+            const y = calendarMonthObj.getFullYear(), m = calendarMonthObj.getMonth();
+            document.getElementById('calendar-month-display').innerText = `${y}年 ${m + 1}月`;
+            const firstDay = new Date(y, m, 1).getDay(), daysInMonth = new Date(y, m + 1, 0).getDate();
+            const grid = document.getElementById('calendar-grid'); grid.innerHTML = '';
+            for(let i=0; i<firstDay; i++) grid.innerHTML += `<div class="bg-gray-50 calendar-cell"></div>`;
+            for(let d=1; d<=daysInMonth; d++) {
+                const dateStr = formatDate(new Date(y, m, d));
+                const dayTasks = tasks.filter(t => t.date === dateStr);
+                const isSelected = dateStr === calendarSelectedDateStr;
+                let badge = '';
+                if(dayTasks.length) {
+                    const comp = dayTasks.filter(t=>t.completed).length;
+                    badge = `<div class="text-[9px] font-bold mt-1 ${comp === dayTasks.length ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'} rounded-sm">${comp}/${dayTasks.length}</div>`;
+                }
+                grid.innerHTML += `<div onclick="selectCalendarDate('${dateStr}')" class="bg-white calendar-cell p-1 cursor-pointer hover:bg-gray-50 ${isSelected ? 'ring-2 ring-inset ring-blue-500 bg-blue-50' : ''}"><div class="text-center text-xs ${dateStr === formatDate(new Date()) ? 'font-bold text-blue-600' : ''}">${d}</div>${badge}</div>`;
+            }
+        }
+        
+        function renderCalendarTasks() {
+            const parts = calendarSelectedDateStr.split('-');
+            document.getElementById('calendar-selected-date-display').innerHTML = `${parseInt(parts[1])}月${parseInt(parts[2])}日のタスク <span class="bg-gray-200 text-gray-700 text-xs px-2 py-1 rounded-full font-normal" id="calendar-task-count">0</span>`;
+            const dayTasks = tasks.filter(t => t.date === calendarSelectedDateStr);
+            document.getElementById('calendar-task-count').innerText = dayTasks.length;
+            const container = document.getElementById('calendar-tasks-container');
+            if (dayTasks.length === 0) container.innerHTML = '<p class="text-xs text-gray-400 text-center py-4">この日のタスクはありません</p>';
+            else {
+                const incomplete = dayTasks.filter(t => !t.completed), completed = dayTasks.filter(t => t.completed);
+                container.innerHTML = incomplete.map(createTaskHTML).join('') + completed.map(createTaskHTML).join('');
+            }
+        }
+
+        window.selectCalendarDate = async (dateStr) => {
+            calendarSelectedDateStr = dateStr; await checkAndApplyRoutines(calendarSelectedDateStr); 
+            renderCalendar(); renderCalendarTasks();
+        };
+
+        function renderAnalytics() {
+            const completed = tasks.filter(t => t.completed && t.actualTime > 0);
+            const subData = {}; SUBJECTS.forEach(s => subData[s] = 0);
+            const evalData = {'A':0, 'B':0, 'C':0, 'D':0};
+            completed.forEach(t => { subData[t.subject||'その他'] += Number(t.actualTime); if(t.evaluation) evalData[t.evaluation]++; });
+
+            const bgColors = ['#FBCFE8', '#DBEAFE', '#FEE2E2', '#D1FAE5', '#FEF3C7', '#E0E7FF', '#F3F4F6'];
+            if(chartSubjectInstance) chartSubjectInstance.destroy();
+            chartSubjectInstance = new Chart(document.getElementById('chart-subject'), { type: 'doughnut', data: { labels: SUBJECTS, datasets: [{ data: SUBJECTS.map(s => subData[s]), backgroundColor: bgColors }] }, options: { responsive: true, maintainAspectRatio: false } });
+
+            if(chartEvalInstance) chartEvalInstance.destroy();
+            chartEvalInstance = new Chart(document.getElementById('chart-evaluation'), { type: 'pie', data: { labels: ['A', 'B', 'C', 'D'], datasets: [{ data: [evalData['A'], evalData['B'], evalData['C'], evalData['D']], backgroundColor: ['#60A5FA', '#34D399', '#FBBF24', '#F87171'] }] }, options: { responsive: true, maintainAspectRatio: false } });
+        }
+
+        function renderSettings() {
+            document.getElementById('routine-list').innerHTML = routines.map(r => `
+                <li class="flex justify-between items-center bg-gray-50 p-2 rounded-lg mb-2 border">
+                    <div><p class="font-bold text-sm">${escapeHTML(r.title)}</p><p class="text-xs text-gray-500">${escapeHTML(r.subject)} / ${r.estimatedTime}分</p></div>
+                    <button onclick="deleteRoutine('${r.id}')" class="text-red-400"><i class="fas fa-trash"></i></button>
+                </li>
+            `).join('');
+        }
+        async function saveNewRoutine() {
+            const title = document.getElementById('input-routine-title').value; if(!title) return;
+            document.getElementById('input-routine-title').value = ''; window.closeModal('modal-add-routine');
+            await addDoc(getCollectionRef('routines'), { title, subject: document.getElementById('input-routine-subject').value, estimatedTime: parseInt(document.getElementById('input-routine-time').value)||0, createdAt: new Date().toISOString() });
+        }
+        async function deleteRoutine(id) { if(confirm("削除しますか？")) await deleteDoc(getDocRef('routines', id)); }
+
+    </script>
+</body>
+</html>
