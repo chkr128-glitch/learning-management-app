@@ -23,6 +23,7 @@
                     animation: {
                         'bounce-slight': 'bounce-slight 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) both',
                         'pop-in': 'pop-in 0.2s ease-out',
+                        'blob': 'blob 7s infinite',
                     },
                     keyframes: {
                         'bounce-slight': {
@@ -33,6 +34,12 @@
                         'pop-in': {
                             '0%': { transform: 'scale(0.9)', opacity: '0.5' },
                             '100%': { transform: 'scale(1)', opacity: '1' },
+                        },
+                        'blob': {
+                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                            '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
+                            '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+                            '100%': { transform: 'translate(0px, 0px) scale(1)' },
                         }
                     }
                 }
@@ -67,6 +74,8 @@
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
         .calendar-cell { min-height: 80px; }
         select { appearance: none; -webkit-appearance: none; }
+        .animation-delay-2000 { animation-delay: 2s; }
+        .animation-delay-4000 { animation-delay: 4s; }
     </style>
 </head>
 <body class="text-gray-800 dark:text-gray-100 h-screen overflow-hidden flex flex-col bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
@@ -76,55 +85,93 @@
         <p class="text-gray-500 dark:text-gray-400 font-medium tracking-wide">読み込み中...</p>
     </div>
 
-    <div id="auth-screen" class="absolute inset-0 bg-gray-50 dark:bg-gray-900 z-40 hidden flex-col items-center justify-center p-5 transition-colors">
-        <div class="bg-white dark:bg-gray-800 p-8 sm:p-10 rounded-3xl shadow-xl w-full max-w-sm border border-gray-100 dark:border-gray-700">
-            <h2 class="text-2xl font-black text-center text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-purple-600 mb-8 tracking-wide" id="auth-title">ログイン</h2>
-            <div class="space-y-5">
-                <div>
-                    <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 ml-1">メールアドレス</label>
-                    <input type="email" id="auth-email" class="w-full border-none bg-gray-100 dark:bg-gray-700 dark:text-white p-4 rounded-2xl focus:ring-2 focus:ring-pink-500 focus:bg-white dark:focus:bg-gray-600 transition-all outline-none" placeholder="email@example.com">
+    <div id="auth-screen" class="absolute inset-0 bg-slate-50 dark:bg-gray-900 z-40 hidden flex-col items-center justify-center p-5 transition-colors overflow-hidden">
+        <!-- 🌟 追加: 背景のぼかしアニメーション装飾 -->
+        <div class="absolute top-[-10%] left-[-10%] w-72 h-72 bg-pink-300/40 dark:bg-pink-900/30 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob"></div>
+        <div class="absolute top-[20%] right-[-10%] w-72 h-72 bg-purple-300/40 dark:bg-purple-900/30 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-2000"></div>
+        <div class="absolute bottom-[-20%] left-[20%] w-72 h-72 bg-indigo-300/40 dark:bg-indigo-900/30 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-4000"></div>
+
+        <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl p-8 sm:p-10 rounded-[2.5rem] shadow-2xl w-full max-w-md border border-white/50 dark:border-gray-700/50 relative z-10">
+            
+            <!-- 🌟 変更: オリジナルのアプリアイコンを表示 -->
+            <div class="text-center mb-8">
+                <div class="inline-flex items-center justify-center w-24 h-24 mb-3 transform hover:scale-105 transition-transform duration-300">
+                    <img src="icon.png" alt="StudyLoop Logo" class="w-full h-full object-contain drop-shadow-xl rounded-3xl" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2YwZjBmMCIvPjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGFsaWdubWVudC1iYXNlbGluZT0ibWlkZGxlIiBmaWxsPSIjOTk5Ij5Mb2dvPC90ZXh0Pjwvc3ZnPg=='">
                 </div>
-                <div>
-                    <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 ml-1">パスワード</label>
-                    <input type="password" id="auth-password" class="w-full border-none bg-gray-100 dark:bg-gray-700 dark:text-white p-4 rounded-2xl focus:ring-2 focus:ring-pink-500 focus:bg-white dark:focus:bg-gray-600 transition-all outline-none" placeholder="6文字以上">
+                <h1 class="text-3xl font-black text-gray-800 dark:text-white tracking-tight mb-1">StudyLoop</h1>
+                <p class="text-xs font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-500 tracking-widest">志望大学合格最適化マネージャー</p>
+            </div>
+
+            <h2 class="text-sm font-bold text-center text-gray-500 dark:text-gray-400 mb-6" id="auth-title">ログインして学習を始める</h2>
+            
+            <div class="space-y-4">
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <i class="fas fa-envelope text-gray-400"></i>
+                    </div>
+                    <input type="email" id="auth-email" class="w-full border-none bg-white dark:bg-gray-900/50 dark:text-white py-3.5 pl-11 pr-4 rounded-xl focus:ring-2 focus:ring-pink-500 shadow-inner transition-all outline-none text-sm font-medium" placeholder="メールアドレス">
                 </div>
-                <button id="auth-btn-action" onclick="performAuthAction()" class="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold py-4 rounded-full mt-2 hover:opacity-90 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">ログイン</button>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <i class="fas fa-lock text-gray-400"></i>
+                    </div>
+                    <input type="password" id="auth-password" class="w-full border-none bg-white dark:bg-gray-900/50 dark:text-white py-3.5 pl-11 pr-4 rounded-xl focus:ring-2 focus:ring-pink-500 shadow-inner transition-all outline-none text-sm font-medium" placeholder="パスワード (6文字以上)">
+                </div>
+                <button id="auth-btn-action" onclick="performAuthAction()" class="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold py-3.5 rounded-xl mt-2 hover:opacity-90 transition-all shadow-[0_8px_15px_rgba(236,72,153,0.3)] dark:shadow-[0_8px_15px_rgba(0,0,0,0.4)] transform hover:-translate-y-0.5">ログイン</button>
             </div>
 
             <div class="relative flex items-center justify-center my-6">
-                <hr class="w-full border-gray-200 dark:border-gray-700">
-                <span class="absolute px-3 bg-white dark:bg-gray-800 text-xs text-gray-400 font-medium">または</span>
+                <hr class="w-full border-gray-200 dark:border-gray-600">
+                <span class="absolute px-3 bg-transparent text-[10px] text-gray-400 font-bold uppercase tracking-wider">or continue with</span>
             </div>
-            <button onclick="performGoogleAuth()" class="w-full bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 font-bold py-3.5 rounded-2xl hover:bg-gray-50 dark:hover:bg-gray-600 transition-all shadow-sm border border-gray-200 dark:border-gray-600 flex justify-center items-center">
-                <i class="fab fa-google text-red-500 mr-2 text-lg"></i> Googleで続ける
+            
+            <button onclick="performGoogleAuth()" class="w-full bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 font-bold py-3.5 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-600 transition-all shadow-sm border border-gray-200 dark:border-gray-600 flex justify-center items-center">
+                <i class="fab fa-google text-red-500 mr-2 text-lg"></i> Googleでログイン
             </button>
 
-            <div class="mt-6 text-center">
-                <button onclick="toggleAuthMode()" id="auth-toggle-btn" class="text-xs text-pink-500 dark:text-pink-400 hover:text-pink-600 font-medium transition-colors">アカウントをお持ちでない方はこちら（新規登録）</button>
+            <div class="mt-8 text-center">
+                <button onclick="toggleAuthMode()" id="auth-toggle-btn" class="text-xs text-gray-500 dark:text-gray-400 hover:text-pink-500 dark:hover:text-pink-400 font-bold transition-colors border-b border-dashed border-gray-300 dark:border-gray-600 hover:border-pink-500 pb-0.5">アカウントをお持ちでない方はこちら</button>
             </div>
-            <p id="auth-error-msg" class="text-red-500 text-xs font-medium text-center mt-4 min-h-[1rem]"></p>
+            <p id="auth-error-msg" class="text-red-500 text-xs font-bold text-center mt-4 min-h-[1rem]"></p>
         </div>
     </div>
 
     <div id="main-app" class="flex-1 flex-col hidden w-full h-full relative">
-        <header class="bg-gradient-to-r from-red-500 via-pink-500 to-purple-600 text-white p-4 shadow-md fixed w-full z-20 top-0 flex justify-between items-center h-16 rounded-b-3xl transition-colors">
-            <div class="ml-2 flex items-center">
-                <h1 class="text-sm font-black tracking-wider opacity-90">志望校合格マネージャー</h1>
-                <button onclick="toggleDarkMode()" class="ml-3 w-8 h-8 flex items-center justify-center bg-white/20 rounded-full hover:bg-white/30 transition-colors focus:outline-none">
+        <header class="bg-gradient-to-r from-red-500 via-pink-500 to-purple-600 text-white px-3 sm:px-4 shadow-md fixed w-full z-20 top-0 flex justify-between items-center h-16 rounded-b-3xl transition-colors">
+            
+            <!-- 左側: ダークモードボタン -->
+            <div class="flex items-center z-10">
+                <button onclick="toggleDarkMode()" class="w-8 h-8 flex items-center justify-center bg-white/20 rounded-full hover:bg-white/30 transition-colors focus:outline-none">
                     <i id="theme-icon" class="fas fa-moon text-xs"></i>
                 </button>
             </div>
-            <div class="flex items-center space-x-3 text-xs text-right mr-2">
-                <!-- 🌟 追加: ヘッダー用ストリーク表示 -->
-                <div id="header-streak-container" class="hidden items-center justify-center bg-white/20 px-2 py-1 rounded-full shadow-sm backdrop-blur-sm border border-white/20">
-                    <span id="header-streak-emoji" class="text-sm drop-shadow-sm"></span>
-                    <span id="header-streak-days" class="font-black text-sm ml-1 leading-none tracking-tight"></span><span class="text-[10px] ml-0.5 font-bold leading-none">日</span>
-                </div>
-                <div class="flex space-x-3">
-                    <div><p class="opacity-80 font-medium">共通テスト</p><p class="font-black text-xl leading-tight"><span id="cd-common">--</span> <span class="text-xs font-medium">日</span></p></div>
-                    <div><p class="opacity-80 font-medium">2次試験</p><p class="font-black text-xl leading-tight text-yellow-200"><span id="cd-second">--</span> <span class="text-xs font-medium text-white">日</span></p></div>
+            
+            <!-- 🌟 変更: 中央に絶対配置でロゴとアプリ名を固定 -->
+            <div class="absolute inset-0 flex justify-center items-center pointer-events-none z-0">
+                <div class="flex items-center space-x-1.5 sm:space-x-2 pointer-events-auto">
+                    <img src="icon.png" alt="Logo" class="w-6 h-6 sm:w-7 sm:h-7 rounded-lg shadow-sm" onerror="this.style.display='none'">
+                    <h1 class="text-base sm:text-lg font-black tracking-wider opacity-90">StudyLoop</h1>
                 </div>
             </div>
+
+            <!-- 🌟 変更: 右側（ストリークとカウントダウンの省スペース化） -->
+            <div class="flex items-center space-x-1.5 sm:space-x-3 text-right z-10">
+                <div id="header-streak-container" class="hidden items-center justify-center bg-white/20 px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full shadow-sm backdrop-blur-sm border border-white/20">
+                    <span id="header-streak-emoji" class="text-xs sm:text-sm drop-shadow-sm"></span>
+                    <span id="header-streak-days" class="font-black text-xs sm:text-sm ml-0.5 sm:ml-1 leading-none tracking-tight"></span><span class="text-[8px] sm:text-[10px] ml-0.5 font-bold leading-none hidden sm:inline">日</span>
+                </div>
+                <div class="flex space-x-2 sm:space-x-3 text-[9px] sm:text-xs">
+                    <div class="hidden sm:block">
+                        <p class="opacity-80 font-medium">共通テスト</p>
+                        <p class="font-black text-lg sm:text-xl leading-tight"><span id="cd-common">--</span> <span class="text-[8px] sm:text-xs font-medium">日</span></p>
+                    </div>
+                    <div>
+                        <p class="opacity-80 font-medium">2次試験</p>
+                        <p class="font-black text-lg sm:text-xl leading-tight text-yellow-200"><span id="cd-second">--</span> <span class="text-[8px] sm:text-xs font-medium text-white">日</span></p>
+                    </div>
+                </div>
+            </div>
+
         </header>
 
         <main class="flex-1 overflow-y-auto mt-20 mb-24 pb-6 relative w-full max-w-lg mx-auto" id="main-content">
@@ -427,6 +474,7 @@
 
         // 🌟 追加: 名言リスト（後で追加・差し替え可能）
         const QUOTES = [
+            // --- 第一弾（海外の偉人・アスリートなど） ---
             { text: "Your time is limited, so don’t waste it living someone else’s life.", author: "Steve Jobs" },
             { text: "Stay hungry. Stay foolish.", author: "Steve Jobs" },
             { text: "You can’t connect the dots looking forward; you can only connect them looking backwards.", author: "Steve Jobs" },
@@ -664,9 +712,9 @@
         let isLoginMode = true;
         window.toggleAuthMode = () => {
             isLoginMode = !isLoginMode;
-            document.getElementById('auth-title').innerText = isLoginMode ? "ログイン" : "新規登録";
+            document.getElementById('auth-title').innerText = isLoginMode ? "ログインして学習を始める" : "新しくアカウントを作成する";
             document.getElementById('auth-btn-action').innerText = isLoginMode ? "ログイン" : "登録してはじめる";
-            document.getElementById('auth-toggle-btn').innerText = isLoginMode ? "アカウントをお持ちでない方はこちら（新規登録）" : "すでにアカウントをお持ちの方はこちら（ログイン）";
+            document.getElementById('auth-toggle-btn').innerText = isLoginMode ? "アカウントをお持ちでない方はこちら" : "すでにアカウントをお持ちの方はこちら";
             document.getElementById('auth-error-msg').innerText = "";
         };
 
@@ -1220,7 +1268,6 @@
                 return;
             }
 
-            const incomplete = dayTasks.filter(t => !t.completed);
             const completed = dayTasks.filter(t => t.completed);
             
             // 🌟 総勉強時間の計算とサマリーカードの表示
@@ -1240,13 +1287,74 @@
             `;
 
             let html = '';
-            if (incomplete.length > 0) {
-                html += `<h4 class="text-xs font-bold text-gray-500 dark:text-gray-400 mt-5 mb-3 ml-1 flex items-center"><i class="fas fa-list-ul mr-1.5"></i>未完了のタスク</h4>`;
-                html += incomplete.map(createTaskHTML).join('');
+            
+            const normalTasks = dayTasks.filter(t => !t.isReview);
+            const reviewTasks = dayTasks.filter(t => t.isReview);
+
+            // 🌟 通常タスクの表示 (科目ごと)
+            if (normalTasks.length > 0) {
+                html += `<h4 class="text-sm font-bold text-gray-700 dark:text-gray-300 mt-6 mb-3 ml-1 flex items-center border-b border-gray-200 dark:border-gray-700 pb-2"><i class="fas fa-book-open text-blue-500 mr-2"></i>通常タスク</h4>`;
+                
+                const tasksBySubject = {};
+                SUBJECTS.forEach(s => tasksBySubject[s] = []);
+                normalTasks.forEach(t => {
+                    if(tasksBySubject[t.subject]) tasksBySubject[t.subject].push(t);
+                    else tasksBySubject['その他'].push(t);
+                });
+
+                SUBJECTS.forEach(s => {
+                    const subTasks = tasksBySubject[s];
+                    if (subTasks.length === 0) return;
+                    
+                    subTasks.sort((a, b) => (a.completed === b.completed) ? 0 : a.completed ? 1 : -1);
+
+                    html += `
+                        <div class="mb-4 ml-1">
+                            <h5 class="font-bold text-gray-600 dark:text-gray-400 mb-2 flex items-center text-xs">
+                                <span class="${SUBJECT_COLORS[s]} px-2.5 py-0.5 rounded-md text-[10px] mr-2 shadow-sm">${s}</span>
+                            </h5>
+                            <div class="space-y-3 pl-1">
+                                ${subTasks.map(t => t.completed ? createCompletedTaskReviewHTML(t) : createTaskHTML(t, true)).join('')}
+                            </div>
+                        </div>
+                    `;
+                });
             }
-            if (completed.length > 0) {
-                html += `<h4 class="text-xs font-bold text-gray-500 dark:text-gray-400 mt-5 mb-3 ml-1 flex items-center"><i class="fas fa-check-circle mr-1.5"></i>完了した学習記録</h4>`;
-                html += completed.map(createCompletedTaskReviewHTML).join('');
+
+            // 🌟 復習タスクの表示 (元の評価ごと)
+            if (reviewTasks.length > 0) {
+                html += `<h4 class="text-sm font-bold text-gray-700 dark:text-gray-300 mt-6 mb-3 ml-1 flex items-center border-b border-gray-200 dark:border-gray-700 pb-2"><i class="fas fa-redo-alt text-orange-500 mr-2"></i>復習タスク</h4>`;
+                
+                const evals = ['A', 'B', 'C', 'D', '未分類'];
+                const evalLabels = { 'A': '完璧', 'B': 'やや不安', 'C': '要復習', 'D': '歯が立たず', '未分類': 'その他' };
+                const evalColors = { 'A': 'text-pink-500', 'B': 'text-purple-500', 'C': 'text-yellow-500', 'D': 'text-red-500', '未分類': 'text-gray-500' };
+                const tasksByEval = {};
+                evals.forEach(e => tasksByEval[e] = []);
+
+                reviewTasks.forEach(t => {
+                    // タスク名に含まれる「評A」などの文字から元の評価を判定
+                    const match = t.title.match(/評([A-D])/);
+                    const evalRank = match ? match[1] : '未分類';
+                    tasksByEval[evalRank].push(t);
+                });
+
+                evals.forEach(e => {
+                    const eTasks = tasksByEval[e];
+                    if (eTasks.length === 0) return;
+
+                    eTasks.sort((a, b) => (a.completed === b.completed) ? 0 : a.completed ? 1 : -1);
+
+                    html += `
+                        <div class="mb-4 ml-1">
+                            <h5 class="font-bold text-gray-600 dark:text-gray-400 mb-2 flex items-center text-xs">
+                                <i class="fas fa-flag ${evalColors[e]} mr-1.5"></i> 元の評価: <span class="ml-1">${e} (${evalLabels[e]})</span>
+                            </h5>
+                            <div class="space-y-3 pl-1">
+                                ${eTasks.map(t => t.completed ? createCompletedTaskReviewHTML(t) : createTaskHTML(t, false)).join('')}
+                            </div>
+                        </div>
+                    `;
+                });
             }
             
             container.innerHTML = html;
