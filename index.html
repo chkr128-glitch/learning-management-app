@@ -348,9 +348,9 @@
                 </div>
 
                 <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden mb-6 transition-colors">
-                    <div class="p-8 text-center bg-gradient-to-b from-indigo-50/50 to-white dark:from-indigo-900/20 dark:to-gray-800 border-b border-gray-100 dark:border-gray-700 transition-colors">
-                        <div class="text-6xl md:text-7xl font-black text-gray-800 dark:text-white tracking-widest py-4 font-mono transition-colors">
-                            <span id="drill-num1">0</span> <span class="text-indigo-400 dark:text-indigo-500 text-5xl mx-2">×</span> <span id="drill-num2">0</span>
+                    <div class="p-6 sm:p-8 text-center bg-gradient-to-b from-indigo-50/50 to-white dark:from-indigo-900/20 dark:to-gray-800 border-b border-gray-100 dark:border-gray-700 transition-colors">
+                        <div class="flex justify-center items-center text-5xl sm:text-6xl md:text-7xl font-black text-gray-800 dark:text-white tracking-wide sm:tracking-widest py-4 font-mono transition-colors whitespace-nowrap">
+                            <span id="drill-num1">0</span> <span class="text-indigo-400 dark:text-indigo-500 text-4xl sm:text-5xl mx-2 sm:mx-4">×</span> <span id="drill-num2">0</span>
                         </div>
                     </div>
                     
@@ -1243,7 +1243,7 @@
         }
 
         function updateStreak() {
-            const completedDates = [...new Set(tasks.filter(t => t.completed).map(t => t.date))].sort((a, b) => b.localeCompare(a));
+            const completedDates = [...new Set(tasks.filter(t => t.completed && !t.deleted).map(t => t.date))].sort((a, b) => b.localeCompare(a));
             let streak = 0;
             let checkDate = new Date();
             let checkDateStr = formatDate(checkDate);
@@ -1482,7 +1482,21 @@
             window.showToast("タスクを追加しました！");
         }
 
-        window.deleteTask = async function() { if(confirm("削除しますか？")) { await deleteDoc(getDocRef('tasks', document.getElementById('detail-task-id').value)); window.closeModal('modal-task-detail'); window.showToast("タスクを削除しました", "info"); } }
+        window.deleteTask = async function() { 
+            if(confirm("削除しますか？")) { 
+                const id = document.getElementById('detail-task-id').value;
+                const t = tasks.find(x => x.id === id);
+                if (t && t.isRoutine) {
+                    // ルーティンタスクの場合は論理削除（非表示化）して復活を防ぐ
+                    await updateDoc(getDocRef('tasks', id), { deleted: true });
+                } else {
+                    // 通常のタスクは完全に削除する
+                    await deleteDoc(getDocRef('tasks', id)); 
+                }
+                window.closeModal('modal-task-detail'); 
+                window.showToast("タスクを削除しました", "info"); 
+            } 
+        }
         window.saveNewRoutine = async function() {
             const title = document.getElementById('input-routine-title').value; if(!title) return window.showToast("ルーティン名を入力してください", "error");
             document.getElementById('input-routine-title').value = ''; window.closeModal('modal-add-routine');
@@ -1519,7 +1533,7 @@
 
         function renderDashboard() {
             const todayStr = formatDate(new Date());
-            const dayTasks = tasks.filter(t => t.date === todayStr);
+            const dayTasks = tasks.filter(t => t.date === todayStr && !t.deleted);
             const incomplete = dayTasks.filter(t => !t.completed);
             const completed = dayTasks.filter(t => t.completed);
 
@@ -1595,7 +1609,7 @@
             for(let i=0; i<firstDay; i++) grid.innerHTML += `<div class="bg-gray-50 dark:bg-gray-800 rounded-xl calendar-cell"></div>`;
             for(let d=1; d<=daysInMonth; d++) {
                 const dateStr = formatDate(new Date(y, m, d));
-                const dayTasks = tasks.filter(t => t.date === dateStr);
+                const dayTasks = tasks.filter(t => t.date === dateStr && !t.deleted);
                 const isSelected = dateStr === calendarSelectedDateStr;
                 let badge = '';
                 if(dayTasks.length) {
@@ -1612,7 +1626,7 @@
             const parts = calendarSelectedDateStr.split('-');
             document.getElementById('calendar-selected-date-display').innerHTML = `${parseInt(parts[1])}月${parseInt(parts[2])}日の記録 <span class="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs px-3 py-1 rounded-full font-medium" id="calendar-task-count">0</span>`;
             
-            const dayTasks = tasks.filter(t => t.date === calendarSelectedDateStr);
+            const dayTasks = tasks.filter(t => t.date === calendarSelectedDateStr && !t.deleted);
             document.getElementById('calendar-task-count').innerText = dayTasks.length;
             
             const summaryContainer = document.getElementById('calendar-daily-summary');
@@ -1773,7 +1787,7 @@
         };
 
         function renderAnalytics() {
-            const completed = tasks.filter(t => t.completed && t.actualTime > 0);
+            const completed = tasks.filter(t => t.completed && t.actualTime > 0 && !t.deleted);
             const subData = {}; SUBJECTS.forEach(s => subData[s] = 0);
             const evalData = {'A':0, 'B':0, 'C':0, 'D':0};
             completed.forEach(t => { subData[t.subject||'その他'] += Number(t.actualTime); if(t.evaluation) evalData[t.evaluation]++; });
