@@ -4,6 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>志望大学合格最適化マネージャー</title>
+    
+    <!-- 🌟 追加: ホーム画面ショートカット用のアプリアイコン設定 -->
+    <link rel="icon" type="image/png" href="icon.png">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="StudyLoop">
+    <meta name="application-name" content="StudyLoop">
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -81,6 +90,15 @@
                 </div>
                 <button id="auth-btn-action" onclick="performAuthAction()" class="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold py-4 rounded-full mt-2 hover:opacity-90 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">ログイン</button>
             </div>
+
+            <div class="relative flex items-center justify-center my-6">
+                <hr class="w-full border-gray-200 dark:border-gray-700">
+                <span class="absolute px-3 bg-white dark:bg-gray-800 text-xs text-gray-400 font-medium">または</span>
+            </div>
+            <button onclick="performGoogleAuth()" class="w-full bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 font-bold py-3.5 rounded-2xl hover:bg-gray-50 dark:hover:bg-gray-600 transition-all shadow-sm border border-gray-200 dark:border-gray-600 flex justify-center items-center">
+                <i class="fab fa-google text-red-500 mr-2 text-lg"></i> Googleで続ける
+            </button>
+
             <div class="mt-6 text-center">
                 <button onclick="toggleAuthMode()" id="auth-toggle-btn" class="text-xs text-pink-500 dark:text-pink-400 hover:text-pink-600 font-medium transition-colors">アカウントをお持ちでない方はこちら（新規登録）</button>
             </div>
@@ -96,9 +114,16 @@
                     <i id="theme-icon" class="fas fa-moon text-xs"></i>
                 </button>
             </div>
-            <div class="flex space-x-4 text-xs text-right mr-2">
-                <div><p class="opacity-80 font-medium">共通テスト</p><p class="font-black text-xl leading-tight"><span id="cd-common">--</span> <span class="text-xs font-medium">日</span></p></div>
-                <div><p class="opacity-80 font-medium">2次試験</p><p class="font-black text-xl leading-tight text-yellow-200"><span id="cd-second">--</span> <span class="text-xs font-medium text-white">日</span></p></div>
+            <div class="flex items-center space-x-3 text-xs text-right mr-2">
+                <!-- 🌟 追加: ヘッダー用ストリーク表示 -->
+                <div id="header-streak-container" class="hidden items-center justify-center bg-white/20 px-2 py-1 rounded-full shadow-sm backdrop-blur-sm border border-white/20">
+                    <span id="header-streak-emoji" class="text-sm drop-shadow-sm"></span>
+                    <span id="header-streak-days" class="font-black text-sm ml-1 leading-none tracking-tight"></span><span class="text-[10px] ml-0.5 font-bold leading-none">日</span>
+                </div>
+                <div class="flex space-x-3">
+                    <div><p class="opacity-80 font-medium">共通テスト</p><p class="font-black text-xl leading-tight"><span id="cd-common">--</span> <span class="text-xs font-medium">日</span></p></div>
+                    <div><p class="opacity-80 font-medium">2次試験</p><p class="font-black text-xl leading-tight text-yellow-200"><span id="cd-second">--</span> <span class="text-xs font-medium text-white">日</span></p></div>
+                </div>
             </div>
         </header>
 
@@ -106,25 +131,33 @@
             
             <!-- Dashboard View -->
             <div id="view-dashboard" class="view-section active p-5">
-                <h2 id="current-date-display" class="text-2xl font-black text-gray-800 dark:text-white mb-5 ml-1 tracking-tight transition-colors">今日のタスク</h2>
+                <h2 id="current-date-display" class="text-2xl font-black text-gray-800 dark:text-white mb-3 ml-1 tracking-tight transition-colors">今日のタスク</h2>
+                
+                <!-- 🌟 追加: 日替わり名言表示 -->
+                <div id="quote-container" class="mb-5 bg-indigo-50 dark:bg-indigo-900/20 p-4 rounded-2xl border border-indigo-100 dark:border-indigo-800/50 transition-colors animate-pop-in">
+                    <p id="daily-quote-text" class="text-sm font-bold text-indigo-800 dark:text-indigo-200 mb-1.5 leading-relaxed tracking-wide">""</p>
+                    <p id="daily-quote-author" class="text-xs text-right text-indigo-600 dark:text-indigo-400 font-bold">- </p>
+                </div>
+                
+                <!-- 🌟 追加: ダッシュボード用ストリーク表示 -->
+                <div id="dashboard-streak-container" class="mb-5 bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 hidden transition-colors animate-pop-in">
+                    <!-- JSで動的生成 -->
+                </div>
+
                 <div class="mb-8 bg-gradient-to-br from-red-400 via-pink-500 to-purple-500 p-6 rounded-3xl shadow-[0_10px_25px_rgba(236,72,153,0.3)] dark:shadow-[0_10px_25px_rgba(0,0,0,0.5)] text-white relative overflow-hidden animate-pop-in">
                     <div class="absolute -right-4 -top-4 w-24 h-24 bg-white opacity-10 rounded-full"></div>
                     <div class="absolute -bottom-8 -right-8 w-32 h-32 bg-white opacity-10 rounded-full"></div>
                     <p class="text-sm font-medium opacity-90 relative z-10">本日の残り推定学習時間</p>
-                    <p class="text-4xl font-black mt-2 relative z-10"><span id="remaining-time">0</span> <span class="text-lg font-bold">分</span></p>
+                    <p class="text-4xl font-black mt-2 relative z-10" id="remaining-time-display">0<span class="text-lg font-bold ml-1">分</span></p>
+                    <div class="mt-4 flex space-x-4 relative z-10 text-xs font-medium opacity-90">
+                        <p><i class="fas fa-list-ul mr-1"></i>未完了: <span id="incomplete-count" class="font-bold text-sm">0</span></p>
+                        <p><i class="fas fa-check-circle mr-1"></i>完了: <span id="completed-count" class="font-bold text-sm">0</span></p>
+                    </div>
                 </div>
-                <div class="mb-8">
-                    <h3 class="font-bold text-gray-700 dark:text-gray-300 mb-4 flex justify-between items-end pb-2 ml-1 border-b border-gray-200 dark:border-gray-700 transition-colors">
-                        未完了のタスク <span class="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs px-3 py-1 rounded-full font-medium" id="incomplete-count">0</span>
-                    </h3>
-                    <div id="incomplete-tasks" class="space-y-3"></div>
-                </div>
-                <div>
-                    <h3 class="font-bold text-gray-700 dark:text-gray-300 mb-4 flex justify-between items-end pb-2 ml-1 border-b border-gray-200 dark:border-gray-700 transition-colors">
-                        完了済みのタスク <span class="bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400 text-xs px-3 py-1 rounded-full font-medium" id="completed-count">0</span>
-                    </h3>
-                    <div id="completed-tasks" class="space-y-3 opacity-80"></div>
-                </div>
+
+                <!-- 🌟 変更: 科目別タスク表示コンテナ -->
+                <div id="dashboard-tasks-container" class="pb-6"></div>
+
                 <button onclick="openAddTaskModal()" class="fixed bottom-24 right-5 lg:right-[calc(50%-14rem)] w-16 h-16 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-full shadow-[0_8px_20px_rgba(236,72,153,0.4)] dark:shadow-[0_8px_20px_rgba(0,0,0,0.5)] flex items-center justify-center text-2xl hover:opacity-90 transition-all transform hover:scale-105 hover:-translate-y-1 z-10">
                     <i class="fas fa-plus"></i>
                 </button>
@@ -147,7 +180,8 @@
                     <h3 id="calendar-selected-date-display" class="font-bold text-gray-700 dark:text-gray-300 mb-3 flex justify-between items-end pb-2 border-b border-gray-200 dark:border-gray-700 ml-1 transition-colors">
                         選択日のタスク <span class="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs px-3 py-1 rounded-full font-medium" id="calendar-task-count">0</span>
                     </h3>
-                    <div id="calendar-tasks-container" class="space-y-3 pb-10 px-1"></div>
+                    <div id="calendar-daily-summary"></div>
+                    <div id="calendar-tasks-container" class="space-y-3 pb-10 px-1 mt-3"></div>
                 </div>
             </div>
 
@@ -201,7 +235,7 @@
                     </button>
 
                     <label class="block text-xs font-bold text-gray-600 dark:text-gray-400 mb-2 ml-1">各科目の配点（手動入力・修正可能）</label>
-                    <div class="grid grid-cols-3 sm:grid-cols-4 gap-3 mb-5" id="weight-inputs-container">
+                    <div id="exam-weights-container" class="mb-5">
                         <!-- JSで動的に生成 -->
                     </div>
 
@@ -280,7 +314,7 @@
             <h3 class="text-xl font-black mb-2 text-gray-800 dark:text-white pr-10" id="detail-title">タスク名</h3>
             <p class="text-xs text-gray-500 dark:text-gray-400 mb-6 font-medium flex items-center">
                 <span id="detail-subject" class="px-2.5 py-1 rounded-full bg-gray-100 dark:bg-gray-700 mr-2">科目</span>
-                予定: <span id="detail-est-time" class="mx-1 font-bold text-gray-700 dark:text-gray-300"></span>分
+                予定: <span id="detail-est-time" class="mx-1 font-bold text-gray-700 dark:text-gray-300"></span>
             </p>
             <input type="hidden" id="detail-task-id">
             <div class="space-y-6">
@@ -346,7 +380,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, signInWithCustomToken, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, doc, setDoc, getDoc, getDocs, onSnapshot, addDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // ============================================================================
@@ -379,6 +413,160 @@
             return doc(db, 'users', currentUser.uid, collectionName, docId);
         }
 
+        // 🌟 追加: 分を「〇時間〇分」に変換する関数
+        function formatTime(minutes) {
+            const mins = Number(minutes) || 0;
+            if (mins === 0) return '0分';
+            const h = Math.floor(mins / 60);
+            const m = mins % 60;
+            if (h > 0) {
+                return m > 0 ? `${h}時間${m}分` : `${h}時間`;
+            }
+            return `${m}分`;
+        }
+
+        // 🌟 追加: 名言リスト（後で追加・差し替え可能）
+        const QUOTES = [
+            { text: "Your time is limited, so don’t waste it living someone else’s life.", author: "Steve Jobs" },
+            { text: "Stay hungry. Stay foolish.", author: "Steve Jobs" },
+            { text: "You can’t connect the dots looking forward; you can only connect them looking backwards.", author: "Steve Jobs" },
+            { text: "The only way to do great work is to love what you do.", author: "Steve Jobs" },
+            { text: "If today were the last day of your life, would you want to do what you are about to do today?", author: "Steve Jobs" },
+            { text: "I have not failed. I’ve just found 10,000 ways that won’t work.", author: "Thomas Edison" },
+            { text: "Genius is one percent inspiration and ninety-nine percent perspiration.", author: "Thomas Edison" },
+            { text: "I can accept failure, everyone fails at something. But I can’t accept not trying.", author: "Michael Jordan" },
+            { text: "The harder the battle, the sweeter the victory.", author: "Les Brown" },
+            { text: "The only person you are destined to become is the person you decide to be.", author: "Ralph Waldo Emerson" },
+            { text: "Nothing great was ever achieved without enthusiasm.", author: "Ralph Waldo Emerson" },
+            { text: "What lies behind us and what lies before us are tiny matters compared to what lies within us.", author: "Ralph Waldo Emerson" },
+            { text: "It always seems impossible until it’s done.", author: "Nelson Mandela" },
+            { text: "The greatest glory in living lies not in never falling, but in rising every time we fall.", author: "Nelson Mandela" },
+            { text: "Education is the most powerful weapon which you can use to change the world.", author: "Nelson Mandela" },
+            { text: "Do what you can, with what you have, where you are.", author: "Theodore Roosevelt" },
+            { text: "Believe you can and you’re halfway there.", author: "Theodore Roosevelt" },
+            { text: "It is hard to fail, but it is worse never to have tried to succeed.", author: "Theodore Roosevelt" },
+            { text: "Success is not final, failure is not fatal: it is the courage to continue that counts.", author: "Winston Churchill" },
+            { text: "Success consists of going from failure to failure without loss of enthusiasm.", author: "Winston Churchill" },
+            { text: "Never, never, never give up.", author: "Winston Churchill" },
+            { text: "Our greatest glory is not in never falling, but in rising every time we fall.", author: "Confucius" },
+            { text: "It does not matter how slowly you go as long as you do not stop.", author: "Confucius" },
+            { text: "The will to win, the desire to succeed, the urge to reach your full potential… these are the keys that will unlock the door to personal excellence.", author: "Confucius" },
+            { text: "The future depends on what you do today.", author: "Mahatma Gandhi" },
+            { text: "Live as if you were to die tomorrow. Learn as if you were to live forever.", author: "Mahatma Gandhi" },
+            { text: "Be the change that you wish to see in the world.", author: "Mahatma Gandhi" },
+            { text: "You must be the change you want to see in the world.", author: "Mahatma Gandhi" },
+            { text: "Whether you think you can, or you think you can’t—you’re right.", author: "Henry Ford" },
+            { text: "Failure is simply the opportunity to begin again, this time more intelligently.", author: "Henry Ford" },
+            { text: "Obstacles are those frightful things you see when you take your eyes off your goal.", author: "Henry Ford" },
+            { text: "The secret of getting ahead is getting started.", author: "Mark Twain" },
+            { text: "I have had many troubles in my life, most of which never happened.", author: "Mark Twain" },
+            { text: "Twenty years from now you will be more disappointed by the things you didn’t do than by the ones you did.", author: "Mark Twain" },
+            { text: "It is never too late to be what you might have been.", author: "George Eliot" },
+            { text: "It is our choices that show what we truly are, far more than our abilities.", author: "J.K. Rowling" },
+            { text: "Rock bottom became the solid foundation on which I rebuilt my life.", author: "J.K. Rowling" },
+            { text: "Failure meant a stripping away of the inessential.", author: "J.K. Rowling" },
+            { text: "You will never truly know yourself, or the strength of your relationships, until both have been tested by adversity.", author: "J.K. Rowling" },
+            { text: "Life is either a daring adventure or nothing at all.", author: "Helen Keller" },
+            { text: "Alone we can do so little; together we can do so much.", author: "Helen Keller" },
+            { text: "Optimism is the faith that leads to achievement.", author: "Helen Keller" },
+            { text: "A person who never made a mistake never tried anything new.", author: "Albert Einstein" },
+            { text: "In the middle of difficulty lies opportunity.", author: "Albert Einstein" },
+            { text: "I have no special talent. I am only passionately curious.", author: "Albert Einstein" },
+            { text: "The important thing is not to stop questioning.", author: "Albert Einstein" },
+            { text: "Try not to become a man of success, but rather try to become a man of value.", author: "Albert Einstein" },
+            { text: "The future belongs to those who believe in the beauty of their dreams.", author: "Eleanor Roosevelt" },
+            { text: "No one can make you feel inferior without your consent.", author: "Eleanor Roosevelt" },
+            { text: "Do one thing every day that scares you.", author: "Eleanor Roosevelt" },
+            { text: "It is never too late to set another goal or to dream a new dream.", author: "C.S. Lewis" },
+            { text: "You are never too old to set another goal or to dream a new dream.", author: "C.S. Lewis" },
+            { text: "Hardships often prepare ordinary people for an extraordinary destiny.", author: "C.S. Lewis" },
+            { text: "We are what we repeatedly do. Excellence, then, is not an act, but a habit.", author: "Aristotle" },
+            { text: "Knowing yourself is the beginning of all wisdom.", author: "Aristotle" },
+            { text: "The roots of education are bitter, but the fruit is sweet.", author: "Aristotle" },
+            { text: "The secret of happiness is to see all the wonders of the world and never forget the drops of oil on the spoon.", author: "Paulo Coelho" },
+            { text: "When you want something, all the universe conspires in helping you to achieve it.", author: "Paulo Coelho" },
+            { text: "There is no such thing as failure. Failure is just life trying to move us in another direction.", author: "Oprah Winfrey" },
+            { text: "Turn your wounds into wisdom.", author: "Oprah Winfrey" },
+            { text: "The biggest adventure you can take is to live the life of your dreams.", author: "Oprah Winfrey" },
+            { text: "The best way to predict the future is to create it.", author: "Peter Drucker" },
+            { text: "Time is the scarcest resource and unless it is managed nothing else can be managed.", author: "Peter Drucker" },
+            { text: "The most difficult thing is the decision to act, the rest is merely tenacity.", author: "Amelia Earhart" },
+            { text: "The woman who follows the crowd will usually go no further than the crowd.", author: "Francis Burton" },
+            { text: "You miss 100% of the shots you don’t take.", author: "Wayne Gretzky" },
+            { text: "You have to expect things of yourself before you can do them.", author: "Michael Jordan" },
+            { text: "Some people want it to happen, some wish it would happen, others make it happen.", author: "Michael Jordan" },
+            { text: "Everything negative—pressure, challenges—is all an opportunity for me to rise.", author: "Kobe Bryant" },
+            { text: "The most important thing is to try and inspire people so that they can be great in whatever they want to do.", author: "Kobe Bryant" },
+            { text: "Rest at the end, not in the middle.", author: "Kobe Bryant" },
+            { text: "There is no substitute for hard work.", author: "Serena Williams" },
+            { text: "A champion is defined not by their wins but by how they can recover when they fall.", author: "Serena Williams" },
+            { text: "I really think a champion is defined not by their wins but by how they can recover when they fall.", author: "Serena Williams" },
+            { text: "You have to believe in yourself when no one else does.", author: "Serena Williams" },
+            { text: "Hard work beats talent when talent doesn’t work hard.", author: "Tim Notke" },
+            { text: "Discipline is choosing between what you want now and what you want most.", author: "Abraham Lincoln" },
+            { text: "Give me six hours to chop down a tree and I will spend the first four sharpening the axe.", author: "Abraham Lincoln" },
+            { text: "I am not concerned that you have fallen—I am concerned that you arise.", author: "Abraham Lincoln" },
+            { text: "If you want to make your dreams come true, the first thing you have to do is wake up.", author: "M. Power" },
+            { text: "You don’t have to be great to start, but you have to start to be great.", author: "Zig Ziglar" },
+            { text: "People often say that motivation doesn’t last. Well, neither does bathing—that’s why we recommend it daily.", author: "Zig Ziglar" },
+            { text: "Motivation is what gets you started. Habit is what keeps you going.", author: "Jim Ryun" },
+            { text: "Either you run the day, or the day runs you.", author: "Jim Rohn" },
+            { text: "Discipline is the bridge between goals and accomplishment.", author: "Jim Rohn" },
+            { text: "Success is neither magical nor mysterious. Success is the natural consequence of consistently applying basic fundamentals.", author: "Jim Rohn" },
+            { text: "You are the average of the five people you spend the most time with.", author: "Jim Rohn" },
+            { text: "Don’t count the days, make the days count.", author: "Muhammad Ali" },
+            { text: "He who is not courageous enough to take risks will accomplish nothing in life.", author: "Muhammad Ali" },
+            { text: "I hated every minute of training, but I said, ‘Don’t quit. Suffer now and live the rest of your life as a champion.’", author: "Muhammad Ali" },
+            { text: "Impossible is nothing.", author: "Muhammad Ali" },
+            { text: "The only limit to our realization of tomorrow is our doubts of today.", author: "Franklin D. Roosevelt" },
+            { text: "The future belongs to those who prepare for it today.", author: "Malcolm X" },
+            { text: "Education is the passport to the future, for tomorrow belongs to those who prepare for it today.", author: "Malcolm X" },
+            { text: "A journey of a thousand miles begins with a single step.", author: "Lao Tzu" },
+            { text: "When I let go of what I am, I become what I might be.", author: "Lao Tzu" },
+            { text: "He who conquers others is strong; he who conquers himself is mighty.", author: "Lao Tzu" },
+            { text: "The mind is everything. What you think you become.", author: "Buddha" },
+            { text: "What we think, we become.", author: "Buddha" },
+            { text: "The only way out is through.", author: "Robert Frost" },
+            { text: "In three words I can sum up everything I’ve learned about life: it goes on.", author: "Robert Frost" },
+            { text: "Youth is not a time of life; it is a state of mind.", author: "Samuel Ullman" },
+            { text: "It is not the years in your life but the life in your years that counts.", author: "Adlai Stevenson" },
+            { text: "Life isn’t about finding yourself. Life is about creating yourself.", author: "George Bernard Shaw" },
+            { text: "We are all in the gutter, but some of us are looking at the stars.", author: "Oscar Wilde" },
+            { text: "Be yourself; everyone else is already taken.", author: "Oscar Wilde" },
+            { text: "Experience is simply the name we give our mistakes.", author: "Oscar Wilde" },
+            { text: "What seems to us as bitter trials are often blessings in disguise.", author: "Oscar Wilde" },
+            { text: "The future starts today, not tomorrow.", author: "Pope John Paul II" },
+            { text: "If opportunity doesn’t knock, build a door.", author: "Milton Berle" },
+            { text: "Success is walking from failure to failure with no loss of enthusiasm.", author: "Winston Churchill" },
+            { text: "Act as if what you do makes a difference. It does.", author: "William James" },
+            { text: "Nothing will work unless you do.", author: "Maya Angelou" },
+            { text: "You may encounter many defeats, but you must not be defeated.", author: "Maya Angelou" },
+            { text: "My mission in life is not merely to survive, but to thrive.", author: "Maya Angelou" },
+            { text: "If you don’t like the road you’re walking, start paving another one.", author: "Dolly Parton" },
+            { text: "Go confidently in the direction of your dreams. Live the life you have imagined.", author: "Henry David Thoreau" },
+            { text: "What you get by achieving your goals is not as important as what you become by achieving your goals.", author: "Zig Ziglar" },
+            { text: "The only impossible journey is the one you never begin.", author: "Tony Robbins" },
+            { text: "Setting goals is the first step in turning the invisible into the visible.", author: "Tony Robbins" },
+            { text: "It’s not whether you get knocked down; it’s whether you get up.", author: "Vince Lombardi" },
+            { text: "Individual commitment to a group effort—that is what makes a team work.", author: "Vince Lombardi" },
+            { text: "Perfection is not attainable, but if we chase perfection we can catch excellence.", author: "Vince Lombardi" },
+            { text: "Champions keep playing until they get it right.", author: "Billie Jean King" },
+            { text: "A champion is afraid of losing. Everyone else is afraid of winning.", author: "Billie Jean King" },
+            { text: "You must expect great things of yourself before you can do them.", author: "Michael Jordan" }
+        ];
+
+        // 🌟 追加: 日替わり名言の表示処理
+        function displayDailyQuote() {
+            const today = new Date();
+            // 経過日数を使って、その日固定のインデックスを計算
+            const daysSinceEpoch = Math.floor(today.getTime() / (1000 * 60 * 60 * 24));
+            const quoteIndex = daysSinceEpoch % QUOTES.length;
+            const quote = QUOTES[quoteIndex];
+            
+            document.getElementById('daily-quote-text').innerText = `"${quote.text}"`;
+            document.getElementById('daily-quote-author').innerText = `- ${quote.author}`;
+        }
+
         // ============================================================================
         
         const SUBJECTS = ['英語', '数学', '国語', '理科', '社会', '情報', 'その他'];
@@ -392,6 +580,12 @@
             'その他': 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300' 
         };
         const REVIEW_INTERVALS = { 'A': [1, 7, 30], 'B': [1, 3, 7, 14, 30], 'C': [1, 3, 7], 'D': [1, 2, 3, 7, 14, 30] };
+
+        // 🌟 追加: 選択科目のリスト定義
+        const OPTIONS_COMMON_SOCIETY = ["日本史", "世界史", "地理", "公共・政治経済", "公共・倫理"];
+        const OPTIONS_COMMON_SCIENCE = ["物理", "化学", "生物", "地学", "物理基礎", "化学基礎", "生物基礎", "地学基礎"];
+        const OPTIONS_SECOND_SOCIETY = ["日本史", "世界史", "地理"];
+        const OPTIONS_SECOND_SCIENCE = ["物理", "化学", "生物"];
 
         let currentUser = null;
         let tasks = [], routines = [];
@@ -495,6 +689,18 @@
             }
         };
 
+        window.performGoogleAuth = async () => {
+            const errorEl = document.getElementById('auth-error-msg');
+            errorEl.innerText = "";
+            const provider = new GoogleAuthProvider();
+            try {
+                await signInWithPopup(auth, provider);
+            } catch (error) {
+                console.error(error);
+                errorEl.innerText = "Googleログインに失敗しました。";
+            }
+        };
+
         window.handleLogout = async () => { if (confirm("ログアウトしますか？")) await signOut(auth); };
 
         const initAuth = async () => {
@@ -524,21 +730,150 @@
 
         window.onload = () => { initAuth(); setInterval(updateCountdowns, 1000 * 60 * 60); updateThemeIcon(document.documentElement.classList.contains('dark')); };
 
-        // 🌟 追加: 配点入力フォームの動的生成
+        // 🌟 変更: 配点入力フォームの動的生成 (共通テスト・2次試験・文理選択対応)
         function buildWeightInputs() {
-            const container = document.getElementById('weight-inputs-container');
-            container.innerHTML = SUBJECTS.map(s => `
-                <div class="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-xl border border-gray-100 dark:border-gray-700">
-                    <label class="block text-[10px] font-bold text-gray-500 dark:text-gray-400 mb-1">${s}</label>
-                    <input type="number" id="weight-${s}" class="w-full bg-transparent border-b-2 border-gray-300 dark:border-gray-600 focus:border-pink-500 outline-none text-sm font-bold text-center dark:text-white pb-1 transition-colors" placeholder="0">
+            const container = document.getElementById('exam-weights-container');
+            if(!container) return;
+            const commonSocOpts = OPTIONS_COMMON_SOCIETY.map(o => `<option value="${o}">${o}</option>`).join('');
+            const commonSciOpts = OPTIONS_COMMON_SCIENCE.map(o => `<option value="${o}">${o}</option>`).join('');
+            const secondSocOpts = OPTIONS_SECOND_SOCIETY.map(o => `<option value="${o}">${o}</option>`).join('');
+            const secondSciOpts = OPTIONS_SECOND_SCIENCE.map(o => `<option value="${o}">${o}</option>`).join('');
+
+            container.innerHTML = `
+                <div class="mb-4">
+                    <label class="block text-xs font-bold text-gray-600 dark:text-gray-400 mb-1 ml-1">文系 / 理系</label>
+                    <select id="setting-course-type" class="w-full border-none bg-gray-50 dark:bg-gray-700 dark:text-white p-3 rounded-xl focus:ring-2 focus:ring-pink-500 outline-none transition-all appearance-none font-bold">
+                        <option value="文系">文系</option>
+                        <option value="理系">理系</option>
+                    </select>
                 </div>
-            `).join('');
+
+                <div class="mb-4 bg-gray-50 dark:bg-gray-700/30 p-4 rounded-2xl border border-gray-100 dark:border-gray-700">
+                    <h4 class="text-sm font-bold text-gray-700 dark:text-gray-300 mb-3 flex items-center">共通テスト</h4>
+                    <div class="grid grid-cols-3 sm:grid-cols-4 gap-2 mb-3">
+                        ${['国語', '数学IA', '数学IIBC', '英語R', '英語L', '情報'].map(s => `
+                            <div class="bg-white dark:bg-gray-800 p-2 rounded-lg border border-gray-100 dark:border-gray-600">
+                                <label class="block text-[10px] font-bold text-gray-500 dark:text-gray-400 mb-1">${s}</label>
+                                <input type="number" id="c-${s}" class="w-full bg-transparent border-b-2 border-gray-200 dark:border-gray-500 focus:border-pink-500 outline-none text-sm font-bold text-center dark:text-white pb-1" placeholder="0">
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="space-y-2">
+                        <div class="flex space-x-2">
+                            <select id="c-soc1-sub" class="w-2/3 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-600 rounded-lg text-xs font-bold p-2 outline-none dark:text-white"><option value="">社会1を選択</option>${commonSocOpts}</select>
+                            <input type="number" id="c-soc1-score" class="w-1/3 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-600 rounded-lg text-sm font-bold text-center p-2 outline-none dark:text-white" placeholder="配点">
+                        </div>
+                        <div class="flex space-x-2">
+                            <select id="c-soc2-sub" class="w-2/3 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-600 rounded-lg text-xs font-bold p-2 outline-none dark:text-white"><option value="">社会2を選択</option>${commonSocOpts}</select>
+                            <input type="number" id="c-soc2-score" class="w-1/3 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-600 rounded-lg text-sm font-bold text-center p-2 outline-none dark:text-white" placeholder="配点">
+                        </div>
+                        <div class="flex space-x-2">
+                            <select id="c-sci1-sub" class="w-2/3 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-600 rounded-lg text-xs font-bold p-2 outline-none dark:text-white"><option value="">理科1を選択</option>${commonSciOpts}</select>
+                            <input type="number" id="c-sci1-score" class="w-1/3 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-600 rounded-lg text-sm font-bold text-center p-2 outline-none dark:text-white" placeholder="配点">
+                        </div>
+                        <div class="flex space-x-2">
+                            <select id="c-sci2-sub" class="w-2/3 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-600 rounded-lg text-xs font-bold p-2 outline-none dark:text-white"><option value="">理科2を選択</option>${commonSciOpts}</select>
+                            <input type="number" id="c-sci2-score" class="w-1/3 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-600 rounded-lg text-sm font-bold text-center p-2 outline-none dark:text-white" placeholder="配点">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gray-50 dark:bg-gray-700/30 p-4 rounded-2xl border border-gray-100 dark:border-gray-700">
+                    <h4 class="text-sm font-bold text-gray-700 dark:text-gray-300 mb-3 flex items-center">2次試験</h4>
+                    <div class="grid grid-cols-3 gap-2 mb-3">
+                        ${['国語', '数学', '英語'].map(s => `
+                            <div class="bg-white dark:bg-gray-800 p-2 rounded-lg border border-gray-100 dark:border-gray-600">
+                                <label class="block text-[10px] font-bold text-gray-500 dark:text-gray-400 mb-1">${s}</label>
+                                <input type="number" id="s-${s}" class="w-full bg-transparent border-b-2 border-gray-200 dark:border-gray-500 focus:border-pink-500 outline-none text-sm font-bold text-center dark:text-white pb-1" placeholder="0">
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="space-y-2">
+                        <div class="flex space-x-2">
+                            <select id="s-soc1-sub" class="w-2/3 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-600 rounded-lg text-xs font-bold p-2 outline-none dark:text-white"><option value="">社会1を選択</option>${secondSocOpts}</select>
+                            <input type="number" id="s-soc1-score" class="w-1/3 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-600 rounded-lg text-sm font-bold text-center p-2 outline-none dark:text-white" placeholder="配点">
+                        </div>
+                        <div class="flex space-x-2">
+                            <select id="s-soc2-sub" class="w-2/3 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-600 rounded-lg text-xs font-bold p-2 outline-none dark:text-white"><option value="">社会2を選択</option>${secondSocOpts}</select>
+                            <input type="number" id="s-soc2-score" class="w-1/3 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-600 rounded-lg text-sm font-bold text-center p-2 outline-none dark:text-white" placeholder="配点">
+                        </div>
+                        <div class="flex space-x-2">
+                            <select id="s-sci1-sub" class="w-2/3 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-600 rounded-lg text-xs font-bold p-2 outline-none dark:text-white"><option value="">理科1を選択</option>${secondSciOpts}</select>
+                            <input type="number" id="s-sci1-score" class="w-1/3 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-600 rounded-lg text-sm font-bold text-center p-2 outline-none dark:text-white" placeholder="配点">
+                        </div>
+                        <div class="flex space-x-2">
+                            <select id="s-sci2-sub" class="w-2/3 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-600 rounded-lg text-xs font-bold p-2 outline-none dark:text-white"><option value="">理科2を選択</option>${secondSciOpts}</select>
+                            <input type="number" id="s-sci2-score" class="w-1/3 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-600 rounded-lg text-sm font-bold text-center p-2 outline-none dark:text-white" placeholder="配点">
+                        </div>
+                    </div>
+                </div>
+            `;
         }
 
         function populateSelects() {
             const html = SUBJECTS.map(s => `<option value="${s}">${s}</option>`).join('');
             document.getElementById('input-task-subject').innerHTML = html;
             document.getElementById('input-routine-subject').innerHTML = html;
+        }
+
+        // 🌟 追加: ストリーク（連続学習日数）の計算と表示更新
+        function updateStreak() {
+            // 完了したタスクの日付を重複なく抽出し、新しい順（降順）に並べ替え
+            const completedDates = [...new Set(tasks.filter(t => t.completed).map(t => t.date))].sort((a, b) => b.localeCompare(a));
+            
+            let streak = 0;
+            let checkDate = new Date();
+            let checkDateStr = formatDate(checkDate);
+
+            // 今日まだ完了していない場合は「昨日」からカウントを開始する（連続は途切れていない）
+            if (!completedDates.includes(checkDateStr)) {
+                checkDate.setDate(checkDate.getDate() - 1);
+                checkDateStr = formatDate(checkDate);
+            }
+
+            // 遡りながら連続日数をカウント
+            while (completedDates.includes(checkDateStr)) {
+                streak++;
+                checkDate.setDate(checkDate.getDate() - 1);
+                checkDateStr = formatDate(checkDate);
+            }
+
+            // 絵文字の判定
+            let emoji = '';
+            let msg = '';
+            if (streak >= 121) { emoji = '🏆'; msg = 'レジェンド級の継続力！'; }
+            else if (streak >= 61) { emoji = '🏅'; msg = '素晴らしい習慣が定着しています！'; }
+            else if (streak >= 22) { emoji = '💎'; msg = '完全に習慣化されましたね！'; }
+            else if (streak >= 1) { emoji = '🔥'; msg = 'その調子！継続は力なり！'; }
+
+            // ヘッダーの表示切り替え
+            const headerContainer = document.getElementById('header-streak-container');
+            if (streak > 0) {
+                headerContainer.classList.remove('hidden'); headerContainer.classList.add('flex');
+                document.getElementById('header-streak-emoji').innerText = emoji;
+                document.getElementById('header-streak-days').innerText = streak;
+            } else {
+                headerContainer.classList.add('hidden'); headerContainer.classList.remove('flex');
+            }
+
+            // ダッシュボードの表示切り替え
+            const dashContainer = document.getElementById('dashboard-streak-container');
+            if (streak > 0) {
+                dashContainer.classList.remove('hidden');
+                dashContainer.innerHTML = `
+                    <div class="flex items-center">
+                        <div class="text-4xl mr-4 drop-shadow-md animate-bounce-slight">${emoji}</div>
+                        <div>
+                            <p class="text-[10px] font-bold text-gray-500 dark:text-gray-400 mb-0.5">${msg}</p>
+                            <p class="text-lg font-black text-gray-800 dark:text-gray-100">
+                                現在 <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600 text-2xl mx-1">${streak}</span> 日連続学習中！
+                            </p>
+                        </div>
+                    </div>
+                `;
+            } else {
+                dashContainer.classList.add('hidden');
+            }
         }
 
         function setupListeners() {
@@ -548,7 +883,10 @@
             unsubTasks = onSnapshot(getCollectionRef('tasks'), async (snapshot) => {
                 tasks = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
                 tasks.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
-                isTasksLoaded = true; tryApplyInitialRoutines(); renderCurrentView();
+                isTasksLoaded = true; 
+                tryApplyInitialRoutines(); 
+                updateStreak(); // 🌟 ストリークの更新
+                renderCurrentView();
             }, e => console.error(e));
 
             unsubRoutines = onSnapshot(getCollectionRef('routines'), (snapshot) => {
@@ -657,11 +995,13 @@
             if (activeView === 'view-analytics') renderAnalytics();
         }
 
-        function createTaskHTML(t) {
+        function createTaskHTML(t, hideSubjectBadge = false) {
             let detailBadge = '';
             if (t.subEvaluations && t.subEvaluations.length > 0) {
                 detailBadge = `<span class="ml-2 bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-300 px-1.5 py-0.5 rounded-md font-bold border border-purple-100 dark:border-purple-800">問題別記録あり</span>`;
             }
+            const subjectBadge = hideSubjectBadge ? '' : `<span class="text-[10px] px-2.5 py-1 rounded-full font-bold ${SUBJECT_COLORS[t.subject] || SUBJECT_COLORS['その他']}">${escapeHTML(t.subject)}</span>`;
+
             return `
                 <div class="flex items-center bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-sm hover:shadow-md transition-all border border-gray-50 dark:border-gray-700 relative overflow-hidden mb-3">
                     ${t.isReview ? '<div class="absolute left-0 top-0 bottom-0 w-1.5 bg-orange-400"></div>' : ''}
@@ -669,10 +1009,10 @@
                     <div class="flex-grow cursor-pointer truncate" onclick="openTaskDetailModal('${t.id}')">
                         <div class="flex justify-between items-center mb-1">
                             <span class="${t.completed ? 'line-through text-gray-400 dark:text-gray-500' : 'text-gray-800 dark:text-gray-100'} font-bold text-base truncate mr-2 tracking-wide">${escapeHTML(t.title)}</span>
-                            <span class="text-[10px] px-2.5 py-1 rounded-full font-bold ${SUBJECT_COLORS[t.subject] || SUBJECT_COLORS['その他']}">${escapeHTML(t.subject)}</span>
+                            ${subjectBadge}
                         </div>
                         <div class="text-[11px] text-gray-500 dark:text-gray-400 font-medium flex items-center mt-1.5">
-                            <i class="far fa-clock mr-1"></i> ${t.estimatedTime}分
+                            <i class="far fa-clock mr-1"></i> ${formatTime(t.estimatedTime)}
                             ${t.isReview ? '<span class="text-orange-500 dark:text-orange-400 ml-2 bg-orange-50 dark:bg-orange-900/30 px-1.5 py-0.5 rounded-md"><i class="fas fa-redo-alt mr-1"></i>復習</span>' : ''}
                             ${t.completed && t.evaluation ? `<span class="ml-2 bg-pink-50 dark:bg-pink-900/30 text-pink-600 dark:text-pink-300 px-1.5 py-0.5 rounded-md font-bold border border-pink-100 dark:border-pink-800">評${t.evaluation}</span>` : ''}
                             ${detailBadge}
@@ -687,11 +1027,72 @@
             const incomplete = dayTasks.filter(t => !t.completed);
             const completed = dayTasks.filter(t => t.completed);
 
-            document.getElementById('remaining-time').innerText = incomplete.reduce((sum, t) => sum + (Number(t.estimatedTime) || 0), 0);
-            document.getElementById('incomplete-count').innerText = incomplete.length;
-            document.getElementById('completed-count').innerText = completed.length;
-            document.getElementById('incomplete-tasks').innerHTML = incomplete.length ? incomplete.map(createTaskHTML).join('') : '<p class="text-sm font-medium text-gray-400 dark:text-gray-500 text-center py-6 bg-white dark:bg-gray-800 rounded-2xl border border-dashed border-gray-200 dark:border-gray-700">未完了のタスクはありません</p>';
-            document.getElementById('completed-tasks').innerHTML = completed.length ? completed.map(createTaskHTML).join('') : '';
+            // 今日タブの見出しに日付を表示する
+            const todayDate = new Date();
+            const m = todayDate.getMonth() + 1;
+            const d = todayDate.getDate();
+            const days = ['日', '月', '火', '水', '木', '金', '土'];
+            document.getElementById('current-date-display').innerText = `${m}月${d}日(${days[todayDate.getDay()]}) のタスク`;
+
+            // 🌟 追加: 名言を表示
+            displayDailyQuote();
+
+            const totalMinutes = incomplete.reduce((sum, t) => sum + (Number(t.estimatedTime) || 0), 0);
+            const hours = Math.floor(totalMinutes / 60);
+            const mins = totalMinutes % 60;
+            let timeHtml = '';
+            if (hours > 0) {
+                timeHtml = `${hours}<span class="text-lg font-bold ml-1 mr-2">時間</span>${mins > 0 ? `${mins}<span class="text-lg font-bold ml-1">分</span>` : ''}`;
+            } else {
+                timeHtml = `${mins}<span class="text-lg font-bold ml-1">分</span>`;
+            }
+            document.getElementById('remaining-time-display').innerHTML = timeHtml;
+
+            // 未完了・完了数をダッシュボードに反映
+            const incompleteCountEl = document.getElementById('incomplete-count');
+            const completedCountEl = document.getElementById('completed-count');
+            if(incompleteCountEl) incompleteCountEl.innerText = incomplete.length;
+            if(completedCountEl) completedCountEl.innerText = completed.length;
+
+            // 科目ごとにタスクを分類
+            const tasksBySubject = {};
+            SUBJECTS.forEach(s => tasksBySubject[s] = []);
+            
+            dayTasks.forEach(t => {
+                if(tasksBySubject[t.subject]) tasksBySubject[t.subject].push(t);
+                else tasksBySubject['その他'].push(t);
+            });
+
+            let tasksHtml = '';
+            
+            SUBJECTS.forEach(s => {
+                const subTasks = tasksBySubject[s];
+                if(subTasks.length === 0) return;
+
+                // 未完了を上に、完了を下にソート
+                subTasks.sort((a, b) => (a.completed === b.completed) ? 0 : a.completed ? 1 : -1);
+
+                tasksHtml += `
+                    <div class="mb-6">
+                        <h3 class="font-bold text-gray-700 dark:text-gray-300 mb-3 flex items-center border-b border-gray-200 dark:border-gray-700 pb-2 ml-1">
+                            <span class="${SUBJECT_COLORS[s]} px-2.5 py-0.5 rounded-md text-[10px] mr-2 shadow-sm">${s}</span>
+                            <span class="text-sm">タスク一覧</span>
+                        </h3>
+                        <div class="space-y-3">
+                            ${subTasks.map(t => createTaskHTML(t, true)).join('')}
+                        </div>
+                    </div>
+                `;
+            });
+
+            const container = document.getElementById('dashboard-tasks-container');
+            if (container) {
+                if (tasksHtml === '') {
+                    container.innerHTML = '<p class="text-sm font-medium text-gray-400 dark:text-gray-500 text-center py-6 bg-white dark:bg-gray-800 rounded-2xl border border-dashed border-gray-200 dark:border-gray-700">今日のタスクはありません</p>';
+                } else {
+                    container.innerHTML = tasksHtml;
+                }
+            }
         }
 
         async function saveNewTask() {
@@ -718,7 +1119,7 @@
             const t = tasks.find(x => x.id === id); if(!t) return;
             document.getElementById('detail-title').innerText = t.title;
             document.getElementById('detail-subject').innerText = t.subject;
-            document.getElementById('detail-est-time').innerText = t.estimatedTime;
+            document.getElementById('detail-est-time').innerText = formatTime(t.estimatedTime);
             document.getElementById('detail-task-id').value = t.id;
             document.getElementById('detail-actual-time').value = t.actualTime || t.estimatedTime;
             document.getElementById('detail-note').value = t.note || '';
@@ -805,15 +1206,103 @@
         
         function renderCalendarTasks() {
             const parts = calendarSelectedDateStr.split('-');
-            document.getElementById('calendar-selected-date-display').innerHTML = `${parseInt(parts[1])}月${parseInt(parts[2])}日のタスク <span class="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs px-3 py-1 rounded-full font-medium" id="calendar-task-count">0</span>`;
+            document.getElementById('calendar-selected-date-display').innerHTML = `${parseInt(parts[1])}月${parseInt(parts[2])}日の記録 <span class="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs px-3 py-1 rounded-full font-medium" id="calendar-task-count">0</span>`;
+            
             const dayTasks = tasks.filter(t => t.date === calendarSelectedDateStr);
             document.getElementById('calendar-task-count').innerText = dayTasks.length;
+            
+            const summaryContainer = document.getElementById('calendar-daily-summary');
             const container = document.getElementById('calendar-tasks-container');
-            if (dayTasks.length === 0) container.innerHTML = '<p class="text-sm font-medium text-gray-400 dark:text-gray-500 text-center py-6 bg-white dark:bg-gray-800 rounded-2xl border border-dashed border-gray-200 dark:border-gray-700">この日のタスクはありません</p>';
-            else {
-                const incomplete = dayTasks.filter(t => !t.completed), completed = dayTasks.filter(t => t.completed);
-                container.innerHTML = incomplete.map(createTaskHTML).join('') + completed.map(createTaskHTML).join('');
+            
+            if (dayTasks.length === 0) {
+                summaryContainer.innerHTML = '';
+                container.innerHTML = '<p class="text-sm font-medium text-gray-400 dark:text-gray-500 text-center py-6 bg-white dark:bg-gray-800 rounded-2xl border border-dashed border-gray-200 dark:border-gray-700">この日の記録はありません</p>';
+                return;
             }
+
+            const incomplete = dayTasks.filter(t => !t.completed);
+            const completed = dayTasks.filter(t => t.completed);
+            
+            // 🌟 総勉強時間の計算とサマリーカードの表示
+            const totalActualTime = completed.reduce((sum, t) => sum + (Number(t.actualTime) || 0), 0);
+            
+            summaryContainer.innerHTML = `
+                <div class="bg-gradient-to-br from-indigo-500 to-purple-600 p-5 rounded-2xl shadow-sm text-white flex justify-between items-center animate-pop-in">
+                    <div>
+                        <p class="text-xs font-medium opacity-80 mb-1">総勉強時間</p>
+                        <p class="text-2xl font-black">${formatTime(totalActualTime)}</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-xs font-medium opacity-80 mb-1">タスク達成率</p>
+                        <p class="text-2xl font-black">${completed.length} <span class="text-sm opacity-80">/ ${dayTasks.length}</span></p>
+                    </div>
+                </div>
+            `;
+
+            let html = '';
+            if (incomplete.length > 0) {
+                html += `<h4 class="text-xs font-bold text-gray-500 dark:text-gray-400 mt-5 mb-3 ml-1 flex items-center"><i class="fas fa-list-ul mr-1.5"></i>未完了のタスク</h4>`;
+                html += incomplete.map(createTaskHTML).join('');
+            }
+            if (completed.length > 0) {
+                html += `<h4 class="text-xs font-bold text-gray-500 dark:text-gray-400 mt-5 mb-3 ml-1 flex items-center"><i class="fas fa-check-circle mr-1.5"></i>完了した学習記録</h4>`;
+                html += completed.map(createCompletedTaskReviewHTML).join('');
+            }
+            
+            container.innerHTML = html;
+        }
+
+        // 🌟 追加: 完了したタスクの振り返り用詳細HTMLを生成する関数
+        function createCompletedTaskReviewHTML(t) {
+            let subEvalsHtml = '';
+            if (t.subEvaluations && t.subEvaluations.length > 0) {
+                subEvalsHtml = `
+                    <div class="mt-3 bg-gray-50 dark:bg-gray-700/40 rounded-xl p-3 border border-gray-100 dark:border-gray-600/50">
+                        <p class="text-[10px] font-bold text-gray-500 dark:text-gray-400 mb-2 border-b border-gray-200 dark:border-gray-600 pb-1">教材・問題別の詳細</p>
+                        <div class="space-y-1.5">
+                            ${t.subEvaluations.map(sub => `
+                                <div class="flex justify-between items-center text-xs">
+                                    <span class="text-gray-700 dark:text-gray-300 font-medium truncate">${escapeHTML(sub.name)}</span>
+                                    <span class="font-bold ml-2 ${sub.eval === 'A' ? 'text-pink-500' : sub.eval === 'B' ? 'text-purple-500' : sub.eval === 'C' ? 'text-yellow-500' : 'text-red-500'}">
+                                        評${sub.eval}
+                                    </span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            let noteHtml = '';
+            if (t.note) {
+                noteHtml = `
+                    <div class="mt-3">
+                        <p class="text-[10px] font-bold text-gray-500 dark:text-gray-400 mb-1 ml-1">学習メモ・振り返り</p>
+                        <p class="text-xs text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-700/40 border border-gray-100 dark:border-gray-600/50 p-3 rounded-xl whitespace-pre-wrap leading-relaxed">${escapeHTML(t.note)}</p>
+                    </div>
+                `;
+            }
+
+            return `
+                <div class="bg-white dark:bg-gray-800 p-4 sm:p-5 rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-gray-100 dark:border-gray-700 relative mb-4">
+                    <div class="flex justify-between items-start mb-2">
+                        <div class="flex-grow pr-4">
+                            <h4 class="font-bold text-gray-800 dark:text-gray-100 text-[15px] leading-tight mb-2">${escapeHTML(t.title)}</h4>
+                            <div class="flex flex-wrap items-center gap-2">
+                                <span class="text-[10px] px-2 py-0.5 rounded-full font-bold ${SUBJECT_COLORS[t.subject] || SUBJECT_COLORS['その他']}">${escapeHTML(t.subject)}</span>
+                                <span class="text-xs text-gray-500 dark:text-gray-400 font-bold bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded-md"><i class="far fa-clock mr-1"></i>${formatTime(t.actualTime)}</span>
+                                ${t.evaluation ? `<span class="text-xs font-bold px-2 py-0.5 rounded-md border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300">全体評: ${t.evaluation}</span>` : ''}
+                                ${t.isReview ? '<span class="text-orange-500 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/30 px-2 py-0.5 rounded-md text-[10px] font-bold"><i class="fas fa-redo-alt mr-1"></i>復習</span>' : ''}
+                            </div>
+                        </div>
+                        <button onclick="openTaskDetailModal('${t.id}')" class="text-gray-400 hover:text-pink-500 transition-colors w-8 h-8 flex items-center justify-center bg-gray-50 hover:bg-pink-50 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-full flex-shrink-0">
+                            <i class="fas fa-edit text-xs"></i>
+                        </button>
+                    </div>
+                    ${subEvalsHtml}
+                    ${noteHtml}
+                </div>
+            `;
         }
 
         window.selectCalendarDate = async (dateStr) => { calendarSelectedDateStr = dateStr; await checkAndApplyRoutines(calendarSelectedDateStr); renderCalendar(); renderCalendarTasks(); };
@@ -834,20 +1323,36 @@
 
             const bgColors = ['#F472B6', '#C084FC', '#FB7185', '#34D399', '#FBBF24', '#818CF8', '#9CA3AF'];
             
-            // 🌟 追加: レーダーチャートの描画 (配点 vs 学習時間)
+            // 🌟 変更: 詳細配点（共通テスト・2次）から大科目への合算
             const targetWeights = [];
             const actualTimes = [];
             let totalWeight = 0;
             let totalActualTime = 0;
             
+            const targetWeightsMap = { '英語': 0, '数学': 0, '国語': 0, '理科': 0, '社会': 0, '情報': 0, 'その他': 0 };
+
+            if (userProfile.examScores) {
+                const cs = userProfile.examScores.common || {};
+                const ss = userProfile.examScores.second || {};
+                targetWeightsMap['国語'] = (parseInt(cs['国語'])||0) + (parseInt(ss['国語'])||0);
+                targetWeightsMap['数学'] = (parseInt(cs['数学IA'])||0) + (parseInt(cs['数学IIBC'])||0) + (parseInt(ss['数学'])||0);
+                targetWeightsMap['英語'] = (parseInt(cs['英語R'])||0) + (parseInt(cs['英語L'])||0) + (parseInt(ss['英語'])||0);
+                targetWeightsMap['情報'] = (parseInt(cs['情報'])||0);
+                targetWeightsMap['社会'] = (parseInt(cs['社会1_score'])||0) + (parseInt(cs['社会2_score'])||0) + (parseInt(ss['社会1_score'])||0) + (parseInt(ss['社会2_score'])||0);
+                targetWeightsMap['理科'] = (parseInt(cs['理科1_score'])||0) + (parseInt(cs['理科2_score'])||0) + (parseInt(ss['理科1_score'])||0) + (parseInt(ss['理科2_score'])||0);
+            } else if (userProfile.weights) {
+                // 古いデータとの互換性
+                SUBJECTS.forEach(s => targetWeightsMap[s] = parseInt(userProfile.weights[s]) || 0);
+            }
+
             SUBJECTS.forEach(s => {
-                const w = parseInt(userProfile.weights[s]) || 0;
+                const w = targetWeightsMap[s] || 0;
                 totalWeight += w;
                 totalActualTime += subData[s];
             });
 
             SUBJECTS.forEach(s => {
-                const w = parseInt(userProfile.weights[s]) || 0;
+                const w = targetWeightsMap[s] || 0;
                 targetWeights.push(totalWeight > 0 ? (w / totalWeight * 100).toFixed(1) : 0);
                 actualTimes.push(totalActualTime > 0 ? (subData[s] / totalActualTime * 100).toFixed(1) : 0);
             });
@@ -883,10 +1388,34 @@
             // プロフィール情報の反映
             document.getElementById('setting-univ').value = userProfile.targetUniv || '';
             document.getElementById('setting-fac').value = userProfile.targetFaculty || '';
-            SUBJECTS.forEach(s => {
-                const el = document.getElementById(`weight-${s}`);
-                if (el && userProfile.weights[s] !== undefined) el.value = userProfile.weights[s];
-            });
+            
+            if (userProfile.examScores) {
+                const typeEl = document.getElementById('setting-course-type');
+                if (typeEl) typeEl.value = userProfile.examScores.courseType || '文系';
+                
+                const cs = userProfile.examScores.common || {};
+                const ss = userProfile.examScores.second || {};
+                
+                ['国語', '数学IA', '数学IIBC', '英語R', '英語L', '情報'].forEach(s => {
+                    const el = document.getElementById(`c-${s}`); if(el) el.value = cs[s] || '';
+                });
+                ['soc1', 'soc2', 'sci1', 'sci2'].forEach(key => {
+                    const k = key==='soc1'?'社会1':key==='soc2'?'社会2':key==='sci1'?'理科1':'理科2';
+                    const subEl = document.getElementById(`c-${key}-sub`); if(subEl) subEl.value = cs[`${k}_sub`] || '';
+                    const scoreEl = document.getElementById(`c-${key}-score`); if(scoreEl) scoreEl.value = cs[`${k}_score`] || '';
+                });
+
+                ['国語', '数学', '英語'].forEach(s => {
+                    const el = document.getElementById(`s-${s}`); if(el) el.value = ss[s] || '';
+                });
+                ['soc1', 'soc2', 'sci1', 'sci2'].forEach(key => {
+                    const k = key==='soc1'?'社会1':key==='soc2'?'社会2':key==='sci1'?'理科1':'理科2';
+                    const subEl = document.getElementById(`s-${key}-sub`); if(subEl) subEl.value = ss[`${k}_sub`] || '';
+                    const scoreEl = document.getElementById(`s-${key}-score`); if(scoreEl) scoreEl.value = ss[`${k}_score`] || '';
+                });
+            } else if (userProfile.weights) {
+                // 古いフォーマットからの移行措置等は省略（新規入力推奨）
+            }
 
             // ルーティンの反映
             document.getElementById('routine-list').innerHTML = routines.map(r => `
@@ -895,7 +1424,7 @@
                         <p class="font-bold text-sm text-gray-800 dark:text-gray-100 mb-1.5 tracking-wide">${escapeHTML(r.title)}</p>
                         <p class="text-[11px] text-gray-500 dark:text-gray-400 font-medium flex items-center">
                             <span class="${SUBJECT_COLORS[r.subject] || SUBJECT_COLORS['その他']} px-2 py-0.5 rounded-full mr-2 font-bold">${escapeHTML(r.subject)}</span>
-                            予定: ${r.estimatedTime}分
+                            予定: ${formatTime(r.estimatedTime)}
                         </p>
                     </div>
                     <button onclick="deleteRoutine('${r.id}')" class="text-red-400 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 bg-red-50 dark:bg-red-900/30 hover:bg-red-100 dark:hover:bg-red-900/50 w-10 h-10 rounded-full flex items-center justify-center transition-colors"><i class="fas fa-trash"></i></button>
@@ -907,13 +1436,42 @@
             if(!currentUser) return;
             const targetUniv = document.getElementById('setting-univ').value.trim();
             const targetFaculty = document.getElementById('setting-fac').value.trim();
-            const weights = {};
-            SUBJECTS.forEach(s => {
-                weights[s] = parseInt(document.getElementById(`weight-${s}`).value) || 0;
-            });
+            
+            const examScores = {
+                courseType: document.getElementById('setting-course-type').value,
+                common: {
+                    '国語': document.getElementById('c-国語').value,
+                    '数学IA': document.getElementById('c-数学IA').value,
+                    '数学IIBC': document.getElementById('c-数学IIBC').value,
+                    '英語R': document.getElementById('c-英語R').value,
+                    '英語L': document.getElementById('c-英語L').value,
+                    '情報': document.getElementById('c-情報').value,
+                    '社会1_sub': document.getElementById('c-soc1-sub').value,
+                    '社会1_score': document.getElementById('c-soc1-score').value,
+                    '社会2_sub': document.getElementById('c-soc2-sub').value,
+                    '社会2_score': document.getElementById('c-soc2-score').value,
+                    '理科1_sub': document.getElementById('c-sci1-sub').value,
+                    '理科1_score': document.getElementById('c-sci1-score').value,
+                    '理科2_sub': document.getElementById('c-sci2-sub').value,
+                    '理科2_score': document.getElementById('c-sci2-score').value,
+                },
+                second: {
+                    '国語': document.getElementById('s-国語').value,
+                    '数学': document.getElementById('s-数学').value,
+                    '英語': document.getElementById('s-英語').value,
+                    '社会1_sub': document.getElementById('s-soc1-sub').value,
+                    '社会1_score': document.getElementById('s-soc1-score').value,
+                    '社会2_sub': document.getElementById('s-soc2-sub').value,
+                    '社会2_score': document.getElementById('s-soc2-score').value,
+                    '理科1_sub': document.getElementById('s-sci1-sub').value,
+                    '理科1_score': document.getElementById('s-sci1-score').value,
+                    '理科2_sub': document.getElementById('s-sci2-sub').value,
+                    '理科2_score': document.getElementById('s-sci2-score').value,
+                }
+            };
             
             try {
-                await setDoc(getDocRef('profile', 'data'), { targetUniv, targetFaculty, weights, updatedAt: new Date().toISOString() });
+                await setDoc(getDocRef('profile', 'data'), { targetUniv, targetFaculty, examScores, updatedAt: new Date().toISOString() }, { merge: true });
                 alert("志望校と配点情報を保存しました！");
             } catch(e) { console.error(e); alert("保存に失敗しました。"); }
         };
@@ -932,7 +1490,7 @@
             try {
                 // 指数バックオフによるリトライ処理を含むFetch
                 const payload = {
-                    contents: [{ parts: [{ text: `${univ} ${fac} の一般入試（大学入学共通テストと2次試験の合計など、メインとなる入試方式）の科目ごとの配点を調べ、英語、数学、国語、理科、社会、情報、その他の7科目に分類して、それぞれの配点を数値で返してください。配点がない科目は0にしてください。` }] }],
+                    contents: [{ parts: [{ text: `${univ} ${fac} の一般入試（共通テストと2次試験）の配点を調べ、共通テスト（国語、数学IA、数学IIBC、英語R、英語L、情報、社会1、社会2、理科1、理科2）と2次試験（国語、数学、英語、社会1、社会2、理科1、理科2）の詳細な科目ごとの配点を数値で返してください。社会と理科は具体的な科目名（日本史、物理など）も設定してください。不要な科目は空文字や0にしてください。` }] }],
                     systemInstruction: { parts: [{ text: "あなたは大学受験の専門家です。最新の入試配点情報を検索し、JSON形式で出力してください。" }] },
                     tools: [{ google_search: {} }],
                     generationConfig: {
@@ -940,8 +1498,26 @@
                         responseSchema: {
                             type: "OBJECT",
                             properties: {
-                                "英語": { type: "INTEGER" }, "数学": { type: "INTEGER" }, "国語": { type: "INTEGER" },
-                                "理科": { type: "INTEGER" }, "社会": { type: "INTEGER" }, "情報": { type: "INTEGER" }, "その他": { type: "INTEGER" }
+                                "common": {
+                                    type: "OBJECT",
+                                    properties: {
+                                        "国語": { type: "INTEGER" }, "数学IA": { type: "INTEGER" }, "数学IIBC": { type: "INTEGER" }, "英語R": { type: "INTEGER" }, "英語L": { type: "INTEGER" }, "情報": { type: "INTEGER" },
+                                        "社会1_sub": { type: "STRING" }, "社会1_score": { type: "INTEGER" },
+                                        "社会2_sub": { type: "STRING" }, "社会2_score": { type: "INTEGER" },
+                                        "理科1_sub": { type: "STRING" }, "理科1_score": { type: "INTEGER" },
+                                        "理科2_sub": { type: "STRING" }, "理科2_score": { type: "INTEGER" }
+                                    }
+                                },
+                                "second": {
+                                    type: "OBJECT",
+                                    properties: {
+                                        "国語": { type: "INTEGER" }, "数学": { type: "INTEGER" }, "英語": { type: "INTEGER" },
+                                        "社会1_sub": { type: "STRING" }, "社会1_score": { type: "INTEGER" },
+                                        "社会2_sub": { type: "STRING" }, "社会2_score": { type: "INTEGER" },
+                                        "理科1_sub": { type: "STRING" }, "理科1_score": { type: "INTEGER" },
+                                        "理科2_sub": { type: "STRING" }, "理科2_score": { type: "INTEGER" }
+                                    }
+                                }
                             }
                         }
                     }
@@ -965,10 +1541,26 @@
                 const textStr = data?.candidates?.[0]?.content?.parts?.[0]?.text;
                 if (!textStr) throw new Error("No data extracted");
                 
-                const weightsObj = JSON.parse(textStr);
-                SUBJECTS.forEach(s => {
-                    const el = document.getElementById(`weight-${s}`);
-                    if (el && weightsObj[s] !== undefined) el.value = weightsObj[s];
+                const resObj = JSON.parse(textStr);
+                const cs = resObj.common || {};
+                const ss = resObj.second || {};
+
+                ['国語', '数学IA', '数学IIBC', '英語R', '英語L', '情報'].forEach(s => {
+                    const el = document.getElementById(`c-${s}`); if(el && cs[s] !== undefined) el.value = cs[s];
+                });
+                ['soc1', 'soc2', 'sci1', 'sci2'].forEach(key => {
+                    const k = key==='soc1'?'社会1':key==='soc2'?'社会2':key==='sci1'?'理科1':'理科2';
+                    const subEl = document.getElementById(`c-${key}-sub`); if(subEl && cs[`${k}_sub`]) subEl.value = cs[`${k}_sub`];
+                    const scoreEl = document.getElementById(`c-${key}-score`); if(scoreEl && cs[`${k}_score`] !== undefined) scoreEl.value = cs[`${k}_score`];
+                });
+
+                ['国語', '数学', '英語'].forEach(s => {
+                    const el = document.getElementById(`s-${s}`); if(el && ss[s] !== undefined) el.value = ss[s];
+                });
+                ['soc1', 'soc2', 'sci1', 'sci2'].forEach(key => {
+                    const k = key==='soc1'?'社会1':key==='soc2'?'社会2':key==='sci1'?'理科1':'理科2';
+                    const subEl = document.getElementById(`s-${key}-sub`); if(subEl && ss[`${k}_sub`]) subEl.value = ss[`${k}_sub`];
+                    const scoreEl = document.getElementById(`s-${key}-score`); if(scoreEl && ss[`${k}_score`] !== undefined) scoreEl.value = ss[`${k}_score`];
                 });
                 
                 alert("配点情報を取得しました！内容が正しいか確認し、保存ボタンを押してください。");
