@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>志望大学合格最適化マネージャー</title>
     
-    <!-- 🌟 追加: ホーム画面ショートカット用のアプリアイコン設定 -->
+    <!-- ホーム画面ショートカット用のアプリアイコン設定 -->
     <link rel="icon" type="image/png" href="icon.png">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -76,6 +76,19 @@
         select { appearance: none; -webkit-appearance: none; }
         .animation-delay-2000 { animation-delay: 2s; }
         .animation-delay-4000 { animation-delay: 4s; }
+
+        /* ドリル用アニメーション */
+        @keyframes zoomIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .zoom-in { animation: zoomIn 0.2s ease-out forwards; }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        .shake { animation: shake 0.3s ease-in-out; }
     </style>
 </head>
 <body class="text-gray-800 dark:text-gray-100 h-screen overflow-hidden flex flex-col bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
@@ -86,14 +99,14 @@
     </div>
 
     <div id="auth-screen" class="absolute inset-0 bg-slate-50 dark:bg-gray-900 z-40 hidden flex-col items-center justify-center p-5 transition-colors overflow-hidden">
-        <!-- 🌟 追加: 背景のぼかしアニメーション装飾 -->
+        <!-- 背景のぼかしアニメーション装飾 -->
         <div class="absolute top-[-10%] left-[-10%] w-72 h-72 bg-pink-300/40 dark:bg-pink-900/30 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob"></div>
         <div class="absolute top-[20%] right-[-10%] w-72 h-72 bg-purple-300/40 dark:bg-purple-900/30 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-2000"></div>
         <div class="absolute bottom-[-20%] left-[20%] w-72 h-72 bg-indigo-300/40 dark:bg-indigo-900/30 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-4000"></div>
 
         <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl p-8 sm:p-10 rounded-[2.5rem] shadow-2xl w-full max-w-md border border-white/50 dark:border-gray-700/50 relative z-10">
             
-            <!-- 🌟 変更: オリジナルのアプリアイコンを表示 -->
+            <!-- オリジナルのアプリアイコンを表示 -->
             <div class="text-center mb-8">
                 <div class="inline-flex items-center justify-center w-24 h-24 mb-3 transform hover:scale-105 transition-transform duration-300">
                     <img src="icon.png" alt="StudyLoop Logo" class="w-full h-full object-contain drop-shadow-xl rounded-3xl" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2YwZjBmMCIvPjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGFsaWdubWVudC1iYXNlbGluZT0ibWlkZGxlIiBmaWxsPSIjOTk5Ij5Mb2dvPC90ZXh0Pjwvc3ZnPg=='">
@@ -146,7 +159,7 @@
                 </button>
             </div>
             
-            <!-- 🌟 変更: 中央に絶対配置でロゴとアプリ名を固定 -->
+            <!-- 中央に絶対配置でロゴとアプリ名を固定 -->
             <div class="absolute inset-0 flex justify-center items-center pointer-events-none z-0">
                 <div class="flex items-center space-x-1.5 sm:space-x-2 pointer-events-auto">
                     <img src="icon.png" alt="Logo" class="w-6 h-6 sm:w-7 sm:h-7 rounded-lg shadow-sm" onerror="this.style.display='none'">
@@ -154,7 +167,7 @@
                 </div>
             </div>
 
-            <!-- 🌟 変更: 右側（ストリークとカウントダウンの省スペース化） -->
+            <!-- 右側（ストリークとカウントダウンの省スペース化） -->
             <div class="flex items-center space-x-1.5 sm:space-x-3 text-right z-10">
                 <div id="header-streak-container" class="hidden items-center justify-center bg-white/20 px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full shadow-sm backdrop-blur-sm border border-white/20">
                     <span id="header-streak-emoji" class="text-xs sm:text-sm drop-shadow-sm"></span>
@@ -171,7 +184,6 @@
                     </div>
                 </div>
             </div>
-
         </header>
 
         <main class="flex-1 overflow-y-auto mt-20 mb-24 pb-6 relative w-full max-w-lg mx-auto" id="main-content">
@@ -180,13 +192,13 @@
             <div id="view-dashboard" class="view-section active p-5">
                 <h2 id="current-date-display" class="text-2xl font-black text-gray-800 dark:text-white mb-3 ml-1 tracking-tight transition-colors">今日のタスク</h2>
                 
-                <!-- 🌟 追加: 日替わり名言表示 -->
+                <!-- 日替わり名言表示 -->
                 <div id="quote-container" class="mb-5 bg-indigo-50 dark:bg-indigo-900/20 p-4 rounded-2xl border border-indigo-100 dark:border-indigo-800/50 transition-colors animate-pop-in">
                     <p id="daily-quote-text" class="text-sm font-bold text-indigo-800 dark:text-indigo-200 mb-1.5 leading-relaxed tracking-wide">""</p>
                     <p id="daily-quote-author" class="text-xs text-right text-indigo-600 dark:text-indigo-400 font-bold">- </p>
                 </div>
                 
-                <!-- 🌟 追加: ダッシュボード用ストリーク表示 -->
+                <!-- ダッシュボード用ストリーク表示 -->
                 <div id="dashboard-streak-container" class="mb-5 bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 hidden transition-colors animate-pop-in">
                     <!-- JSで動的生成 -->
                 </div>
@@ -202,7 +214,7 @@
                     </div>
                 </div>
 
-                <!-- 🌟 変更: 科目別タスク表示コンテナ -->
+                <!-- 科目別タスク表示コンテナ -->
                 <div id="dashboard-tasks-container" class="pb-6"></div>
 
                 <button onclick="openAddTaskModal()" class="fixed bottom-24 right-5 lg:right-[calc(50%-14rem)] w-16 h-16 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-full shadow-[0_8px_20px_rgba(236,72,153,0.4)] dark:shadow-[0_8px_20px_rgba(0,0,0,0.5)] flex items-center justify-center text-2xl hover:opacity-90 transition-all transform hover:scale-105 hover:-translate-y-1 z-10">
@@ -232,11 +244,10 @@
                 </div>
             </div>
 
-            <!-- 🌟 Analytics View (レーダーチャート追加) -->
+            <!-- Analytics View -->
             <div id="view-analytics" class="view-section p-5">
                 <h2 class="text-2xl font-black text-gray-800 dark:text-white mb-6 ml-1 tracking-tight transition-colors">学習分析</h2>
                 
-                <!-- 新規: 志望校配点と学習時間のギャップ可視化 -->
                 <div class="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm mb-6 transition-colors border border-gray-100 dark:border-gray-700 relative overflow-hidden">
                     <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-pink-500 to-purple-500"></div>
                     <h3 class="text-sm font-bold text-gray-800 dark:text-gray-200 mb-1 text-center">配点比率 vs 実際の学習時間</h3>
@@ -256,11 +267,10 @@
                 </div>
             </div>
 
-            <!-- 🌟 Settings View (志望校・配点設定の追加) -->
+            <!-- Settings View -->
             <div id="view-settings" class="view-section p-5">
                 <h2 class="text-2xl font-black text-gray-800 dark:text-white mb-6 ml-1 tracking-tight transition-colors">設定・管理</h2>
                 
-                <!-- 志望校・配点設定 -->
                 <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm p-6 mb-6 transition-colors border border-gray-100 dark:border-gray-700 relative overflow-hidden">
                     <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-400 to-pink-500"></div>
                     <h3 class="font-bold text-gray-700 dark:text-gray-300 mb-4 flex items-center"><i class="fas fa-university text-pink-500 mr-2"></i>志望校・配点設定</h3>
@@ -289,7 +299,6 @@
                     <button onclick="saveUserProfile()" class="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold py-3.5 rounded-xl hover:opacity-90 transition-all shadow-md transform hover:-translate-y-0.5">志望校情報を保存する</button>
                 </div>
 
-                <!-- 固定ルーティン -->
                 <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm p-6 mb-6 transition-colors border border-gray-100 dark:border-gray-700">
                     <div class="flex justify-between items-center mb-5">
                         <h3 class="font-bold text-gray-700 dark:text-gray-300 flex items-center"><i class="fas fa-list-check text-purple-500 mr-2"></i>固定ルーティン</h3>
@@ -298,7 +307,6 @@
                     <ul id="routine-list" class="space-y-3"></ul>
                 </div>
                 
-                <!-- アカウント管理 -->
                 <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm p-6 mb-6 border border-gray-100 dark:border-gray-700 transition-colors">
                     <h3 class="font-bold text-gray-700 dark:text-gray-300 mb-4 flex items-center"><i class="fas fa-user-circle text-gray-500 mr-2"></i>アカウント管理</h3>
                     <p class="text-xs text-gray-500 dark:text-gray-400 mb-2 ml-1 font-medium">ログイン中のユーザーID:</p>
@@ -306,20 +314,103 @@
                     <button onclick="handleLogout()" class="w-full bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 font-bold py-3 rounded-full hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors border border-transparent dark:border-red-900/30">ログアウト</button>
                 </div>
             </div>
+
+            <!-- Drill View (インド式計算ドリル) -->
+            <div id="view-drill" class="view-section p-5">
+                <h2 class="text-2xl font-black text-gray-800 dark:text-white mb-6 ml-1 tracking-tight transition-colors">計算ドリル</h2>
+                
+                <div class="bg-white dark:bg-gray-800 p-1 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col md:flex-row mb-6 gap-1 transition-colors">
+                    <button id="drill-mode-training" class="flex-1 flex items-center justify-center gap-2 py-3 px-2 rounded-xl font-bold text-sm transition-all duration-200 bg-indigo-600 text-white shadow-md">
+                        <i class="fas fa-fire text-yellow-300"></i> 特訓
+                    </button>
+                    <button id="drill-mode-random" class="flex-1 flex items-center justify-center gap-2 py-3 px-2 rounded-xl font-bold text-sm transition-all duration-200 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
+                        <i class="fas fa-dice"></i> ランダム
+                    </button>
+                    <button id="drill-mode-timeattack" class="flex-1 flex items-center justify-center gap-2 py-3 px-2 rounded-xl font-bold text-sm transition-all duration-200 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
+                        <i class="fas fa-stopwatch"></i> タイムアタック
+                    </button>
+                </div>
+
+                <div class="flex justify-between items-end mb-4 px-2">
+                    <div>
+                        <h2 id="drill-title" class="text-lg font-black text-gray-800 dark:text-white tracking-tight transition-colors">🎯 パターン集中特訓</h2>
+                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400 mt-1 transition-colors">
+                            <span id="drill-score-label">連続正解:</span> <span id="drill-score-text" class="text-indigo-600 dark:text-indigo-400 font-bold">0</span> 問
+                            <span class="ml-2 px-2 py-0.5 bg-gray-200 dark:bg-gray-700 rounded-md text-xs font-bold text-gray-600 dark:text-gray-300">最高: <span id="drill-highscore-text">0</span></span>
+                        </p>
+                    </div>
+                    <div id="drill-timer" class="hidden text-2xl font-black text-rose-500 dark:text-rose-400 font-mono tracking-tighter">⏳ 60s</div>
+                    <button id="drill-toggle-hint" class="flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold transition-all bg-amber-100 text-amber-700 hover:bg-amber-200 dark:bg-amber-900/40 dark:text-amber-300 dark:hover:bg-amber-900/60">
+                        <i id="drill-icon-hint-on" class="fas fa-lightbulb"></i>
+                        <i id="drill-icon-hint-off" class="fas fa-lightbulb hidden opacity-50"></i>
+                        <span id="drill-text-hint">ヒントON</span>
+                    </button>
+                </div>
+
+                <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden mb-6 transition-colors">
+                    <div class="p-8 text-center bg-gradient-to-b from-indigo-50/50 to-white dark:from-indigo-900/20 dark:to-gray-800 border-b border-gray-100 dark:border-gray-700 transition-colors">
+                        <div class="text-6xl md:text-7xl font-black text-gray-800 dark:text-white tracking-widest py-4 font-mono transition-colors">
+                            <span id="drill-num1">0</span> <span class="text-indigo-400 dark:text-indigo-500 text-5xl mx-2">×</span> <span id="drill-num2">0</span>
+                        </div>
+                    </div>
+                    
+                    <div id="drill-hint-area" class="px-6 py-4 bg-amber-50/50 dark:bg-amber-900/10 border-b border-amber-100 dark:border-amber-900/30 transition-colors">
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-info-circle text-amber-500 mt-1"></i>
+                            <div>
+                                <div class="text-[10px] font-bold text-amber-600 dark:text-amber-500 uppercase tracking-wider mb-1">推奨解法</div>
+                                <div id="drill-hint-name" class="font-bold text-gray-800 dark:text-gray-200 mb-1 text-sm">ヒント名</div>
+                                <div id="drill-hint-desc" class="text-xs text-gray-600 dark:text-gray-400 leading-relaxed font-medium">ヒントの説明がここに入ります。</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-6">
+                        <form id="drill-play-area" class="flex flex-col gap-4">
+                            <input id="drill-user-input" type="number" placeholder="答えを入力..." class="w-full text-center text-3xl font-bold py-4 bg-gray-50 dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-600 rounded-2xl focus:outline-none focus:border-indigo-500 dark:focus:border-indigo-400 dark:text-white transition-colors" autocomplete="off" required>
+                            <button type="submit" id="drill-btn-submit" class="w-full py-4 rounded-2xl font-bold text-lg text-white bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 disabled:opacity-50 transition-colors">答える</button>
+                        </form>
+
+                        <div id="drill-result-area" class="hidden zoom-in duration-200">
+                            <div id="drill-result-box" class="flex flex-col items-center justify-center p-6 rounded-2xl mb-4 border-2">
+                                <i id="drill-icon-correct" class="fas fa-check-circle text-5xl text-emerald-500 mb-3 hidden"></i>
+                                <i id="drill-icon-incorrect" class="fas fa-times-circle text-5xl text-rose-500 mb-3 hidden"></i>
+                                <i id="drill-icon-timeup" class="fas fa-clock text-5xl text-indigo-500 mb-3 hidden"></i>
+                                <h2 id="drill-result-title" class="text-2xl font-black mb-2">結果</h2>
+                                <p id="drill-correct-text" class="text-rose-600 dark:text-rose-400 font-medium hidden">正解は <span id="drill-actual-answer" class="font-bold text-xl">0</span> です</p>
+                                <p id="drill-timeattack-text" class="text-indigo-600 dark:text-indigo-400 font-medium hidden text-lg mt-2">今回のスコア: <span id="drill-final-score" class="font-bold text-2xl">0</span> 問</p>
+                            </div>
+                            <button id="drill-btn-next" class="w-full flex items-center justify-center gap-2 py-4 rounded-2xl font-bold text-lg text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+                                <span id="drill-btn-next-text">次の問題へ</span> <i class="fas fa-arrow-right ml-1"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-center">
+                    <button id="drill-btn-skip" class="inline-flex items-center gap-2 text-sm font-medium text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
+                        <i class="fas fa-forward"></i> 問題をスキップ
+                    </button>
+                </div>
+            </div>
+
         </main>
 
         <nav class="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-t border-gray-100 dark:border-gray-800 fixed bottom-0 w-full z-20 pb-safe shadow-[0_-10px_30px_rgba(0,0,0,0.05)] flex rounded-t-3xl transition-colors">
-            <div class="flex justify-around w-full max-w-lg mx-auto px-2">
-                <button onclick="switchView('dashboard')" id="nav-dashboard" class="tab-btn active flex flex-col items-center py-3.5 w-1/4 text-gray-400 dark:text-gray-500 hover:text-pink-500 dark:hover:text-pink-400 transition-colors">
+            <div class="flex justify-around w-full max-w-lg mx-auto px-1 sm:px-2">
+                <button onclick="switchView('dashboard')" id="nav-dashboard" class="tab-btn active flex flex-col items-center py-3.5 w-1/5 text-gray-400 dark:text-gray-500 hover:text-pink-500 dark:hover:text-pink-400 transition-colors">
                     <i class="fas fa-list-check text-xl mb-1.5 transition-transform duration-200"></i><span class="text-[10px] font-bold tracking-wider">今日</span>
                 </button>
-                <button onclick="switchView('calendar')" id="nav-calendar" class="tab-btn flex flex-col items-center py-3.5 w-1/4 text-gray-400 dark:text-gray-500 hover:text-pink-500 dark:hover:text-pink-400 transition-colors">
+                <button onclick="switchView('drill')" id="nav-drill" class="tab-btn flex flex-col items-center py-3.5 w-1/5 text-gray-400 dark:text-gray-500 hover:text-pink-500 dark:hover:text-pink-400 transition-colors">
+                    <i class="fas fa-calculator text-xl mb-1.5 transition-transform duration-200"></i><span class="text-[10px] font-bold tracking-wider">計算</span>
+                </button>
+                <button onclick="switchView('calendar')" id="nav-calendar" class="tab-btn flex flex-col items-center py-3.5 w-1/5 text-gray-400 dark:text-gray-500 hover:text-pink-500 dark:hover:text-pink-400 transition-colors">
                     <i class="far fa-calendar-alt text-xl mb-1.5 transition-transform duration-200"></i><span class="text-[10px] font-bold tracking-wider">カレンダー</span>
                 </button>
-                <button onclick="switchView('analytics')" id="nav-analytics" class="tab-btn flex flex-col items-center py-3.5 w-1/4 text-gray-400 dark:text-gray-500 hover:text-pink-500 dark:hover:text-pink-400 transition-colors">
+                <button onclick="switchView('analytics')" id="nav-analytics" class="tab-btn flex flex-col items-center py-3.5 w-1/5 text-gray-400 dark:text-gray-500 hover:text-pink-500 dark:hover:text-pink-400 transition-colors">
                     <i class="fas fa-chart-pie text-xl mb-1.5 transition-transform duration-200"></i><span class="text-[10px] font-bold tracking-wider">分析</span>
                 </button>
-                <button onclick="switchView('settings')" id="nav-settings" class="tab-btn flex flex-col items-center py-3.5 w-1/4 text-gray-400 dark:text-gray-500 hover:text-pink-500 dark:hover:text-pink-400 transition-colors">
+                <button onclick="switchView('settings')" id="nav-settings" class="tab-btn flex flex-col items-center py-3.5 w-1/5 text-gray-400 dark:text-gray-500 hover:text-pink-500 dark:hover:text-pink-400 transition-colors">
                     <i class="fas fa-cog text-xl mb-1.5 transition-transform duration-200"></i><span class="text-[10px] font-bold tracking-wider">設定</span>
                 </button>
             </div>
@@ -327,7 +418,6 @@
     </div>
 
     <!-- MODALS -->
-    <!-- (タスク追加、詳細記録、ルーティン追加のモーダルは既存コードと同様。長いため省略せず全て記載します) -->
     <div id="modal-add-task" class="modal-overlay fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 justify-center items-end sm:items-center" onclick="if(event.target===this) closeModal('modal-add-task')">
         <div class="modal-content bg-white dark:bg-gray-800 w-full sm:max-w-md sm:rounded-3xl rounded-t-3xl p-6 sm:p-8 transform transition-transform duration-300 translate-y-0 shadow-2xl border border-gray-100 dark:border-gray-700">
             <div class="flex justify-between items-center mb-6">
@@ -439,7 +529,7 @@
             messagingSenderId: "530087746816",
             appId: "1:530087746816:web:a041336d78584ca4bc67e5"
         };
-        const apiKey = ""; // ランタイムで注入されるGemini API Key
+        const apiKey = ""; 
 
         const isPreviewEnv = typeof __firebase_config !== 'undefined';
         const useMyConfig = MY_FIREBASE_CONFIG.apiKey !== "";
@@ -460,7 +550,8 @@
             return doc(db, 'users', currentUser.uid, collectionName, docId);
         }
 
-        // 🌟 追加: 分を「〇時間〇分」に変換する関数
+        // ============================================================================
+        
         function formatTime(minutes) {
             const mins = Number(minutes) || 0;
             if (mins === 0) return '0分';
@@ -472,9 +563,7 @@
             return `${m}分`;
         }
 
-        // 🌟 追加: 名言リスト（後で追加・差し替え可能）
         const QUOTES = [
-            // --- 第一弾（海外の偉人・アスリートなど） ---
             { text: "Your time is limited, so don’t waste it living someone else’s life.", author: "Steve Jobs" },
             { text: "Stay hungry. Stay foolish.", author: "Steve Jobs" },
             { text: "You can’t connect the dots looking forward; you can only connect them looking backwards.", author: "Steve Jobs" },
@@ -603,20 +692,21 @@
             { text: "You must expect great things of yourself before you can do them.", author: "Michael Jordan" }
         ];
 
-        // 🌟 追加: 日替わり名言の表示処理
         function displayDailyQuote() {
             const today = new Date();
-            // 経過日数を使って、その日固定のインデックスを計算
             const daysSinceEpoch = Math.floor(today.getTime() / (1000 * 60 * 60 * 24));
             const quoteIndex = daysSinceEpoch % QUOTES.length;
             const quote = QUOTES[quoteIndex];
             
-            document.getElementById('daily-quote-text').innerText = `"${quote.text}"`;
-            document.getElementById('daily-quote-author').innerText = `- ${quote.author}`;
+            const elText = document.getElementById('daily-quote-text');
+            const elAuthor = document.getElementById('daily-quote-author');
+            
+            if (elText) elText.innerText = `"${quote.text}"`;
+            if (elAuthor) elAuthor.innerText = `- ${quote.author}`;
         }
 
         // ============================================================================
-        
+
         const SUBJECTS = ['英語', '数学', '国語', '理科', '社会', '情報', 'その他'];
         const SUBJECT_COLORS = { 
             '英語': 'bg-pink-100 text-pink-700 dark:bg-pink-900/40 dark:text-pink-300', 
@@ -629,7 +719,6 @@
         };
         const REVIEW_INTERVALS = { 'A': [1, 7, 30], 'B': [1, 3, 7, 14, 30], 'C': [1, 3, 7], 'D': [1, 2, 3, 7, 14, 30] };
 
-        // 🌟 追加: 選択科目のリスト定義
         const OPTIONS_COMMON_SOCIETY = ["日本史", "世界史", "地理", "公共・政治経済", "公共・倫理"];
         const OPTIONS_COMMON_SCIENCE = ["物理", "化学", "生物", "地学", "物理基礎", "化学基礎", "生物基礎", "地学基礎"];
         const OPTIONS_SECOND_SOCIETY = ["日本史", "世界史", "地理"];
@@ -637,8 +726,10 @@
 
         let currentUser = null;
         let tasks = [], routines = [];
-        // 🌟 追加: プロフィール情報（志望校、配点）の保持
         let userProfile = { targetUniv: '', targetFaculty: '', weights: {} };
+        
+        function formatDate(date) { const y = date.getFullYear(), m = String(date.getMonth() + 1).padStart(2, '0'), d = String(date.getDate()).padStart(2, '0'); return `${y}-${m}-${d}`; }
+        function escapeHTML(str) { return str ? str.replace(/[&<>'"]/g, tag => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'}[tag])) : ''; }
         
         let calendarSelectedDateStr = formatDate(new Date()); 
         let calendarMonthObj = new Date(); calendarMonthObj.setDate(1);
@@ -647,11 +738,251 @@
         let isApplyingRoutines = false, isTasksLoaded = false, isRoutinesLoaded = false, initialRoutineApplied = false;
         let currentSubEvaluations = [];
 
-        function formatDate(date) { const y = date.getFullYear(), m = String(date.getMonth() + 1).padStart(2, '0'), d = String(date.getDate()).padStart(2, '0'); return `${y}-${m}-${d}`; }
-        function parseDateLocal(str) { const parts = str.split('-'); return new Date(parts[0], parts[1] - 1, parts[2]); }
-        function escapeHTML(str) { return str ? str.replace(/[&<>'"]/g, tag => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'}[tag])) : ''; }
         function getActiveDateStr() { return document.querySelector('.view-section.active').id === 'view-calendar' ? calendarSelectedDateStr : formatDate(new Date()); }
 
+        // ============================================================================
+        // 🌟 追加: ==== インド式計算ドリル ロジック ====
+        const drillState = {
+            num1: 0, num2: 0, status: 'playing', showHint: true,
+            streak: 0, score: 0, gameMode: 'training', timeLeft: 60, timerId: null,
+            highScores: JSON.parse(localStorage.getItem('studyLoopDrillScores')) || { streak: 0, timeAttack: 0 }
+        };
+
+        function saveDrillHighScores() {
+            localStorage.setItem('studyLoopDrillScores', JSON.stringify(drillState.highScores));
+        }
+
+        let drillEls = {};
+
+        function initDrill() {
+            drillEls = {
+                modeTraining: document.getElementById('drill-mode-training'),
+                modeRandom: document.getElementById('drill-mode-random'),
+                modeTimeAttack: document.getElementById('drill-mode-timeattack'),
+                titleText: document.getElementById('drill-title'),
+                scoreLabel: document.getElementById('drill-score-label'),
+                scoreText: document.getElementById('drill-score-text'),
+                highscoreText: document.getElementById('drill-highscore-text'),
+                timerDisplay: document.getElementById('drill-timer'),
+                toggleHint: document.getElementById('drill-toggle-hint'),
+                iconHintOn: document.getElementById('drill-icon-hint-on'),
+                iconHintOff: document.getElementById('drill-icon-hint-off'),
+                textHintToggle: document.getElementById('drill-text-hint'),
+                num1Text: document.getElementById('drill-num1'),
+                num2Text: document.getElementById('drill-num2'),
+                hintArea: document.getElementById('drill-hint-area'),
+                hintName: document.getElementById('drill-hint-name'),
+                hintDesc: document.getElementById('drill-hint-desc'),
+                playArea: document.getElementById('drill-play-area'),
+                userInput: document.getElementById('drill-user-input'),
+                btnSubmit: document.getElementById('drill-btn-submit'),
+                resultArea: document.getElementById('drill-result-area'),
+                resultBox: document.getElementById('drill-result-box'),
+                iconCorrect: document.getElementById('drill-icon-correct'),
+                iconIncorrect: document.getElementById('drill-icon-incorrect'),
+                iconTimeup: document.getElementById('drill-icon-timeup'),
+                resultTitle: document.getElementById('drill-result-title'),
+                correctAnswerText: document.getElementById('drill-correct-text'),
+                actualAnswer: document.getElementById('drill-actual-answer'),
+                timeattackResultText: document.getElementById('drill-timeattack-text'),
+                finalScore: document.getElementById('drill-final-score'),
+                btnNext: document.getElementById('drill-btn-next'),
+                btnNextText: document.getElementById('drill-btn-next-text'),
+                btnSkip: document.getElementById('drill-btn-skip')
+            };
+
+            drillEls.modeTraining.addEventListener('click', () => changeDrillMode('training'));
+            drillEls.modeRandom.addEventListener('click', () => changeDrillMode('random'));
+            drillEls.modeTimeAttack.addEventListener('click', () => changeDrillMode('timeattack'));
+            
+            drillEls.toggleHint.addEventListener('click', () => {
+                drillState.showHint = !drillState.showHint; updateDrillUI();
+            });
+            drillEls.userInput.addEventListener('input', () => updateDrillUI());
+
+            drillEls.playArea.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const val = drillEls.userInput.value.trim();
+                if (!val) return;
+                const answer = parseInt(val, 10);
+                const correctAnswer = drillState.num1 * drillState.num2;
+
+                if (drillState.gameMode === 'timeattack') {
+                    if (answer === correctAnswer) {
+                        drillState.score += 1; generateDrillQuestion();
+                    } else {
+                        drillEls.userInput.value = '';
+                        drillEls.userInput.classList.add('bg-rose-100', 'border-rose-400', 'shake');
+                        setTimeout(() => drillEls.userInput.classList.remove('bg-rose-100', 'border-rose-400', 'shake'), 300);
+                        updateDrillUI();
+                    }
+                } else {
+                    if (answer === correctAnswer) {
+                        drillState.status = 'correct'; drillState.streak += 1;
+                        if (drillState.streak > drillState.highScores.streak) { drillState.highScores.streak = drillState.streak; saveDrillHighScores(); }
+                    } else {
+                        drillState.status = 'incorrect'; drillState.streak = 0;
+                    }
+                    updateDrillUI(); setTimeout(() => drillEls.btnNext.focus(), 10);
+                }
+            });
+
+            drillEls.btnNext.addEventListener('click', () => {
+                if (drillState.status === 'timeup') changeDrillMode('timeattack'); else generateDrillQuestion();
+            });
+            drillEls.btnSkip.addEventListener('click', () => generateDrillQuestion());
+
+            generateDrillQuestion();
+        }
+
+        function startDrillTimer() {
+            if (drillState.timerId) clearInterval(drillState.timerId);
+            drillState.timeLeft = 60;
+            drillState.timerId = setInterval(() => {
+                drillState.timeLeft--; updateDrillUI();
+                if (drillState.timeLeft <= 0) {
+                    clearInterval(drillState.timerId); drillState.status = 'timeup';
+                    if (drillState.score > drillState.highScores.timeAttack) { drillState.highScores.timeAttack = drillState.score; saveDrillHighScores(); }
+                    updateDrillUI();
+                }
+            }, 1000);
+        }
+
+        function generateDrillQuestion() {
+            if (drillState.gameMode === 'random') {
+                drillState.num1 = Math.floor(Math.random() * 100) + 1;
+                drillState.num2 = Math.floor(Math.random() * 100) + 1;
+            } else {
+                const patterns = ['A', 'B', 'C', 'D', 'E', 'F'];
+                const selectedPattern = patterns[Math.floor(Math.random() * patterns.length)];
+                let n1, n2;
+                switch (selectedPattern) {
+                    case 'A': n1 = Math.floor(Math.random() * 9) + 11; n2 = Math.floor(Math.random() * 9) + 11; break;
+                    case 'B': const tB = Math.floor(Math.random() * 89) + 11; n1 = Math.random() > 0.5 ? 11 : tB; n2 = n1 === 11 ? tB : 11; break;
+                    case 'C': const tC = Math.floor(Math.random() * 9) + 1; const oC = Math.floor(Math.random() * 9) + 1; n1 = tC * 10 + oC; n2 = tC * 10 + (10 - oC); break;
+                    case 'D': n1 = Math.floor(Math.random() * 9) + 91; n2 = Math.floor(Math.random() * 9) + 91; break;
+                    case 'E': const tE = Math.floor(Math.random() * 9) + 1; const oE = Math.floor(Math.random() * 9) + 1; n1 = tE * 10 + oE; n2 = (10 - tE) * 10 + oE; break;
+                    case 'F': const tF = Math.floor(Math.random() * 89) + 10; n1 = Math.random() > 0.5 ? 99 : tF; n2 = n1 === 99 ? tF : 99; break;
+                    default: n1 = 15; n2 = 15;
+                }
+                drillState.num1 = n1; drillState.num2 = n2;
+            }
+            drillState.status = 'playing'; drillEls.userInput.value = '';
+            updateDrillUI();
+            
+            if (document.getElementById('view-drill').classList.contains('active')) drillEls.userInput.focus();
+        }
+
+        function getDrillPatternInfo(n1, n2) {
+            const is1Digit = n1 < 10 || n2 < 10;
+            const is100 = n1 === 100 || n2 === 100;
+            if (is100) return { name: 'ボーナス問題', desc: '100をかけるだけ！数字の後ろに「00」をつけましょう。' };
+            if (is1Digit) return { name: '基本の計算', desc: '1桁の計算が含まれています。九九や通常の暗算で解きましょう。' };
+
+            const t1 = Math.floor(n1 / 10), o1 = n1 % 10, t2 = Math.floor(n2 / 10), o2 = n2 % 10;
+            if (t1 === t2 && o1 + o2 === 10) {
+                if (o1 === 5) return { name: 'パターンC (一の位が5の2乗)', desc: `十の位の${t1}と${t1 + 1}をかけて ${t1 * (t1 + 1)}。後ろに必ず 25 をくっつけます。` };
+                return { name: 'パターンC (十が同じ、一を足して10)', desc: `十の位の${t1}と${t1 + 1}をかけて ${t1 * (t1 + 1)}。一の位同士(${o1}×${o2})をかけて ${o1 * o2 < 10 ? '0' + (o1 * o2) : o1 * o2}。これらをくっつけます。` };
+            }
+            if (o1 === o2 && t1 + t2 === 10) {
+                const leftPart = t1 * t2 + o1, rightPart = o1 * o2;
+                return { name: 'パターンE (十を足して10、一が同じ)', desc: `十の位同士(${t1}×${t2})をかけて、共通の一の位(${o1})を足した数「${leftPart}」を左側に。一の位同士(${o1}×${o2})をかけた数「${rightPart < 10 ? '0'+rightPart : rightPart}」を右側にくっつけます。` };
+            }
+            if (n1 === 11 || n2 === 11) {
+                const target = n1 === 11 ? n2 : n1, tt = Math.floor(target / 10), to = target % 10, sum = tt + to;
+                if (sum < 10) return { name: 'パターンB (11をかける)', desc: `${target}を左右(${tt}と${to})に分け、足した数字(${sum})を真ん中に入れます。` };
+                return { name: 'パターンB (11をかける・繰り上がり)', desc: `${target}を左右(${tt}と${to})に分けます。足すと${sum}になるため、真ん中に${sum % 10}を入れ、百の位(${tt})に1を繰り上げます(${tt + 1})。` };
+            }
+            if (n1 === 99 || n2 === 99) {
+                const other = n1 === 99 ? n2 : n1, step1 = other - 1, step2 = 99 - step1;
+                return { name: 'パターンF (99をかける)', desc: `かける数(${other})から1を引いた数「${step1}」を左側に。99からその数(${step1})を引いた数「${step2 < 10 ? '0'+step2 : step2}」を右側にくっつけます。` };
+            }
+            if (n1 >= 11 && n1 <= 19 && n2 >= 11 && n2 <= 19) {
+                const sum = n1 + o2;
+                return { name: 'パターンA (11〜19同士)', desc: `左の${n1}に右の一の位${o2}を足して ${sum}。10倍して ${sum * 10}。一の位同士(${o1}×${o2})をかけて ${o1 * o2}。これらを足します。` };
+            }
+            if (n1 >= 90 && n1 <= 99 && n2 >= 90 && n2 <= 99) {
+                const d1 = 100 - n1, d2 = 100 - n2, diff = n1 - d2, prod = d1 * d2;
+                return { name: 'パターンD (100に近い)', desc: `100から「${d1}」と「${d2}」足りません。斜めに引いて ${n1}-${d2} = ${diff}。足りない数同士をかけて ${d1}×${d2} = ${prod < 10 ? '0' + prod : prod}。これらをくっつけます。` };
+            }
+            const crossSum = (t1 * o2) + (o1 * t2);
+            return { name: '汎用ワザ (たすき掛け)', desc: `①一の位(${o1}×${o2}=${o1 * o2})。②斜めに掛けて足す(${t1}×${o2} + ${o1}×${t2} = ${crossSum})。③十の位(${t1}×${t2}=${t1 * t2})。繰り上がりに注意して下から並べます。` };
+        }
+
+        function resetDrillModeButtons() {
+            const defClass = "flex-1 flex items-center justify-center gap-2 py-3 px-2 rounded-xl font-bold text-sm transition-all duration-200 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700";
+            drillEls.modeTraining.className = defClass; drillEls.modeRandom.className = defClass; drillEls.modeTimeAttack.className = defClass;
+            drillEls.modeTraining.querySelector('i').classList.replace('text-yellow-300', 'text-gray-500');
+        }
+
+        function updateDrillUI() {
+            resetDrillModeButtons();
+            if (drillState.gameMode === 'training') {
+                drillEls.modeTraining.className = "flex-1 flex items-center justify-center gap-2 py-3 px-2 rounded-xl font-bold text-sm transition-all duration-200 bg-indigo-600 text-white shadow-md";
+                drillEls.modeTraining.querySelector('i').classList.replace('text-gray-500', 'text-yellow-300');
+                drillEls.titleText.textContent = '🎯 パターン集中特訓'; drillEls.scoreLabel.textContent = '連続正解:'; drillEls.scoreText.textContent = drillState.streak;
+                drillEls.highscoreText.textContent = drillState.highScores.streak; drillEls.timerDisplay.classList.add('hidden'); drillEls.toggleHint.classList.remove('hidden');
+            } else if (drillState.gameMode === 'random') {
+                drillEls.modeRandom.className = "flex-1 flex items-center justify-center gap-2 py-3 px-2 rounded-xl font-bold text-sm transition-all duration-200 bg-gray-800 dark:bg-gray-600 text-white shadow-md";
+                drillEls.titleText.textContent = '🎲 1〜100 実戦テスト'; drillEls.scoreLabel.textContent = '連続正解:'; drillEls.scoreText.textContent = drillState.streak;
+                drillEls.highscoreText.textContent = drillState.highScores.streak; drillEls.timerDisplay.classList.add('hidden'); drillEls.toggleHint.classList.remove('hidden');
+            } else if (drillState.gameMode === 'timeattack') {
+                drillEls.modeTimeAttack.className = "flex-1 flex items-center justify-center gap-2 py-3 px-2 rounded-xl font-bold text-sm transition-all duration-200 bg-rose-500 text-white shadow-md";
+                drillEls.titleText.textContent = '⏱️ 60秒 タイムアタック'; drillEls.scoreLabel.textContent = 'スコア:'; drillEls.scoreText.textContent = drillState.score;
+                drillEls.highscoreText.textContent = drillState.highScores.timeAttack; drillEls.timerDisplay.classList.remove('hidden'); drillEls.timerDisplay.textContent = `⏳ ${drillState.timeLeft}s`;
+                drillEls.toggleHint.classList.add('hidden'); drillState.showHint = false;
+            }
+
+            drillEls.num1Text.textContent = drillState.num1; drillEls.num2Text.textContent = drillState.num2;
+
+            if (drillState.showHint && drillState.gameMode !== 'timeattack') {
+                drillEls.toggleHint.className = "flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold transition-all bg-amber-100 text-amber-700 hover:bg-amber-200 dark:bg-amber-900/40 dark:text-amber-300 dark:hover:bg-amber-900/60";
+                drillEls.iconHintOn.classList.remove('hidden'); drillEls.iconHintOff.classList.add('hidden'); drillEls.textHintToggle.textContent = 'ヒントON'; drillEls.hintArea.classList.remove('hidden');
+                const hintInfo = getDrillPatternInfo(drillState.num1, drillState.num2);
+                drillEls.hintName.textContent = hintInfo.name; drillEls.hintDesc.textContent = hintInfo.desc;
+            } else {
+                drillEls.toggleHint.className = "flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold transition-all bg-gray-200 text-gray-600 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-400 dark:hover:bg-gray-600";
+                drillEls.iconHintOn.classList.add('hidden'); drillEls.iconHintOff.classList.remove('hidden'); drillEls.textHintToggle.textContent = 'ヒントOFF'; drillEls.hintArea.classList.add('hidden');
+            }
+
+            drillEls.btnSubmit.disabled = drillEls.userInput.value.trim() === '';
+
+            if (drillState.status === 'playing') {
+                drillEls.playArea.classList.remove('hidden'); drillEls.playArea.classList.add('flex');
+                drillEls.resultArea.classList.add('hidden'); drillEls.btnSkip.classList.remove('hidden');
+            } else {
+                drillEls.playArea.classList.add('hidden'); drillEls.playArea.classList.remove('flex');
+                drillEls.resultArea.classList.remove('hidden'); drillEls.btnSkip.classList.add('hidden');
+
+                drillEls.iconCorrect.classList.add('hidden'); drillEls.iconIncorrect.classList.add('hidden'); drillEls.iconTimeup.classList.add('hidden');
+                drillEls.correctAnswerText.classList.add('hidden'); drillEls.timeattackResultText.classList.add('hidden');
+                
+                if (drillState.status === 'correct') {
+                    drillEls.resultBox.className = "flex flex-col items-center justify-center p-6 rounded-2xl mb-4 border-2 bg-emerald-50 border-emerald-200 dark:bg-emerald-900/20 dark:border-emerald-800";
+                    drillEls.iconCorrect.classList.remove('hidden'); drillEls.resultTitle.textContent = "正解！"; drillEls.resultTitle.className = "text-2xl font-black mb-1 text-emerald-700 dark:text-emerald-400"; drillEls.btnNextText.textContent = "次の問題へ";
+                } else if (drillState.status === 'incorrect') {
+                    drillEls.resultBox.className = "flex flex-col items-center justify-center p-6 rounded-2xl mb-4 border-2 bg-rose-50 border-rose-200 dark:bg-rose-900/20 dark:border-rose-800";
+                    drillEls.iconIncorrect.classList.remove('hidden'); drillEls.resultTitle.textContent = "不正解..."; drillEls.resultTitle.className = "text-2xl font-black mb-1 text-rose-700 dark:text-rose-400";
+                    drillEls.correctAnswerText.classList.remove('hidden'); drillEls.actualAnswer.textContent = drillState.num1 * drillState.num2; drillEls.btnNextText.textContent = "次の問題へ";
+                } else if (drillState.status === 'timeup') {
+                    drillEls.resultBox.className = "flex flex-col items-center justify-center p-6 rounded-2xl mb-4 border-2 bg-indigo-50 border-indigo-200 dark:bg-indigo-900/20 dark:border-indigo-800";
+                    drillEls.iconTimeup.classList.remove('hidden'); drillEls.resultTitle.textContent = "タイムアップ！"; drillEls.resultTitle.className = "text-2xl font-black mb-1 text-indigo-700 dark:text-indigo-400";
+                    drillEls.timeattackResultText.classList.remove('hidden'); drillEls.finalScore.textContent = drillState.score; drillEls.btnNextText.textContent = "もう一度挑戦する";
+                }
+            }
+        }
+
+        function changeDrillMode(newMode) {
+            if (drillState.gameMode === newMode) return;
+            drillState.gameMode = newMode; drillState.streak = 0; drillState.score = 0;
+            if (drillState.timerId) clearInterval(drillState.timerId);
+            if (newMode === 'timeattack') startDrillTimer();
+            generateDrillQuestion();
+        }
+
+        // ============================================================================
+        // アプリ全体の設定およびイベントバインディング
+        
         window.toggleDarkMode = () => {
             document.documentElement.classList.toggle('dark');
             const isDark = document.documentElement.classList.contains('dark');
@@ -666,14 +997,36 @@
         }
         window.addEventListener('DOMContentLoaded', () => { updateThemeIcon(document.documentElement.classList.contains('dark')); });
 
-        window.switchView = switchView; window.changeMonth = changeMonth;
+        window.switchView = function(viewName) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active', 'text-pink-500', 'dark:text-pink-400'));
+            document.getElementById(`view-${viewName}`).classList.add('active');
+            const btn = document.getElementById(`nav-${viewName}`);
+            if(btn) {
+                btn.classList.add('active', 'text-pink-500', 'dark:text-pink-400'); 
+                btn.classList.remove('text-gray-400', 'dark:text-gray-500');
+                const icon = btn.querySelector('i');
+                if (icon) {
+                    icon.classList.remove('animate-bounce-slight');
+                    void icon.offsetWidth;
+                    icon.classList.add('animate-bounce-slight');
+                }
+            }
+
+            if (viewName === 'analytics') setTimeout(renderAnalytics, 50);
+            if (viewName === 'settings') renderSettings();
+            if (viewName === 'calendar') renderCalendar();
+            
+            // ドリルタブが開かれたら、入力欄にフォーカスを当てる
+            if (viewName === 'drill' && drillEls.userInput) {
+                setTimeout(() => drillEls.userInput.focus(), 50);
+            }
+        };
+
         window.openAddTaskModal = () => document.getElementById('modal-add-task').classList.add('active');
         window.openAddRoutineModal = () => document.getElementById('modal-add-routine').classList.add('active');
         window.closeModal = (id) => document.getElementById(id).classList.remove('active');
-        window.saveNewTask = saveNewTask; window.toggleTaskComplete = toggleTaskComplete;
-        window.openTaskDetailModal = openTaskDetailModal; window.saveTaskDetail = saveTaskDetail;
-        window.deleteTask = deleteTask; window.saveNewRoutine = saveNewRoutine; window.deleteRoutine = deleteRoutine;
-
+        
         window.toggleSubEvaluations = () => {
             const sec = document.getElementById('sub-evaluations-section');
             const mainSec = document.getElementById('main-evaluation-section');
@@ -776,9 +1129,13 @@
             }
         });
 
-        window.onload = () => { initAuth(); setInterval(updateCountdowns, 1000 * 60 * 60); updateThemeIcon(document.documentElement.classList.contains('dark')); };
+        window.onload = () => { 
+            initAuth(); 
+            setInterval(updateCountdowns, 1000 * 60 * 60); 
+            updateThemeIcon(document.documentElement.classList.contains('dark')); 
+            initDrill(); 
+        };
 
-        // 🌟 変更: 配点入力フォームの動的生成 (共通テスト・2次試験・文理選択対応)
         function buildWeightInputs() {
             const container = document.getElementById('exam-weights-container');
             if(!container) return;
@@ -864,29 +1221,23 @@
             document.getElementById('input-routine-subject').innerHTML = html;
         }
 
-        // 🌟 追加: ストリーク（連続学習日数）の計算と表示更新
         function updateStreak() {
-            // 完了したタスクの日付を重複なく抽出し、新しい順（降順）に並べ替え
             const completedDates = [...new Set(tasks.filter(t => t.completed).map(t => t.date))].sort((a, b) => b.localeCompare(a));
-            
             let streak = 0;
             let checkDate = new Date();
             let checkDateStr = formatDate(checkDate);
 
-            // 今日まだ完了していない場合は「昨日」からカウントを開始する（連続は途切れていない）
             if (!completedDates.includes(checkDateStr)) {
                 checkDate.setDate(checkDate.getDate() - 1);
                 checkDateStr = formatDate(checkDate);
             }
 
-            // 遡りながら連続日数をカウント
             while (completedDates.includes(checkDateStr)) {
                 streak++;
                 checkDate.setDate(checkDate.getDate() - 1);
                 checkDateStr = formatDate(checkDate);
             }
 
-            // 絵文字の判定
             let emoji = '';
             let msg = '';
             if (streak >= 121) { emoji = '🏆'; msg = 'レジェンド級の継続力！'; }
@@ -894,7 +1245,6 @@
             else if (streak >= 22) { emoji = '💎'; msg = '完全に習慣化されましたね！'; }
             else if (streak >= 1) { emoji = '🔥'; msg = 'その調子！継続は力なり！'; }
 
-            // ヘッダーの表示切り替え
             const headerContainer = document.getElementById('header-streak-container');
             if (streak > 0) {
                 headerContainer.classList.remove('hidden'); headerContainer.classList.add('flex');
@@ -904,7 +1254,6 @@
                 headerContainer.classList.add('hidden'); headerContainer.classList.remove('flex');
             }
 
-            // ダッシュボードの表示切り替え
             const dashContainer = document.getElementById('dashboard-streak-container');
             if (streak > 0) {
                 dashContainer.classList.remove('hidden');
@@ -933,7 +1282,7 @@
                 tasks.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
                 isTasksLoaded = true; 
                 tryApplyInitialRoutines(); 
-                updateStreak(); // 🌟 ストリークの更新
+                updateStreak(); 
                 renderCurrentView();
             }, e => console.error(e));
 
@@ -945,7 +1294,6 @@
                 if(document.getElementById('view-settings').classList.contains('active')) renderSettings();
             }, e => console.error(e));
 
-            // 🌟 追加: プロフィールのリアルタイム監視
             unsubProfile = onSnapshot(getDocRef('profile', 'data'), (docSnap) => {
                 if (docSnap.exists()) {
                     userProfile = docSnap.data();
@@ -1016,26 +1364,6 @@
             cd('2027-01-16T00:00:00', 'cd-common'); cd('2027-02-25T00:00:00', 'cd-second');
         }
 
-        function switchView(viewName) {
-            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active', 'text-pink-500', 'dark:text-pink-400'));
-            document.getElementById(`view-${viewName}`).classList.add('active');
-            const btn = document.getElementById(`nav-${viewName}`);
-            btn.classList.add('active', 'text-pink-500', 'dark:text-pink-400'); 
-            btn.classList.remove('text-gray-400', 'dark:text-gray-500');
-            
-            const icon = btn.querySelector('i');
-            if (icon) {
-                icon.classList.remove('animate-bounce-slight');
-                void icon.offsetWidth;
-                icon.classList.add('animate-bounce-slight');
-            }
-
-            if (viewName === 'analytics') setTimeout(renderAnalytics, 50);
-            if (viewName === 'settings') renderSettings();
-            if (viewName === 'calendar') renderCalendar();
-        }
-
         function renderCurrentView() {
             const activeView = document.querySelector('.view-section.active').id;
             if (activeView === 'view-dashboard') renderDashboard();
@@ -1043,127 +1371,7 @@
             if (activeView === 'view-analytics') renderAnalytics();
         }
 
-        function createTaskHTML(t, hideSubjectBadge = false) {
-            let detailBadge = '';
-            if (t.subEvaluations && t.subEvaluations.length > 0) {
-                detailBadge = `<span class="ml-2 bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-300 px-1.5 py-0.5 rounded-md font-bold border border-purple-100 dark:border-purple-800">問題別記録あり</span>`;
-            }
-            const subjectBadge = hideSubjectBadge ? '' : `<span class="text-[10px] px-2.5 py-1 rounded-full font-bold ${SUBJECT_COLORS[t.subject] || SUBJECT_COLORS['その他']}">${escapeHTML(t.subject)}</span>`;
-
-            return `
-                <div class="flex items-center bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-sm hover:shadow-md transition-all border border-gray-50 dark:border-gray-700 relative overflow-hidden mb-3">
-                    ${t.isReview ? '<div class="absolute left-0 top-0 bottom-0 w-1.5 bg-orange-400"></div>' : ''}
-                    <input type="checkbox" ${t.completed ? 'checked' : ''} class="w-6 h-6 text-pink-500 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-pink-500 mr-4 flex-shrink-0 transition-colors" onchange="toggleTaskComplete('${t.id}', this.checked)">
-                    <div class="flex-grow cursor-pointer truncate" onclick="openTaskDetailModal('${t.id}')">
-                        <div class="flex justify-between items-center mb-1">
-                            <span class="${t.completed ? 'line-through text-gray-400 dark:text-gray-500' : 'text-gray-800 dark:text-gray-100'} font-bold text-base truncate mr-2 tracking-wide">${escapeHTML(t.title)}</span>
-                            ${subjectBadge}
-                        </div>
-                        <div class="text-[11px] text-gray-500 dark:text-gray-400 font-medium flex items-center mt-1.5">
-                            <i class="far fa-clock mr-1"></i> ${formatTime(t.estimatedTime)}
-                            ${t.isReview ? '<span class="text-orange-500 dark:text-orange-400 ml-2 bg-orange-50 dark:bg-orange-900/30 px-1.5 py-0.5 rounded-md"><i class="fas fa-redo-alt mr-1"></i>復習</span>' : ''}
-                            ${t.completed && t.evaluation ? `<span class="ml-2 bg-pink-50 dark:bg-pink-900/30 text-pink-600 dark:text-pink-300 px-1.5 py-0.5 rounded-md font-bold border border-pink-100 dark:border-pink-800">評${t.evaluation}</span>` : ''}
-                            ${detailBadge}
-                        </div>
-                    </div>
-                </div>`;
-        }
-
-        function renderDashboard() {
-            const todayStr = formatDate(new Date());
-            const dayTasks = tasks.filter(t => t.date === todayStr);
-            const incomplete = dayTasks.filter(t => !t.completed);
-            const completed = dayTasks.filter(t => t.completed);
-
-            // 今日タブの見出しに日付を表示する
-            const todayDate = new Date();
-            const m = todayDate.getMonth() + 1;
-            const d = todayDate.getDate();
-            const days = ['日', '月', '火', '水', '木', '金', '土'];
-            document.getElementById('current-date-display').innerText = `${m}月${d}日(${days[todayDate.getDay()]}) のタスク`;
-
-            // 🌟 追加: 名言を表示
-            displayDailyQuote();
-
-            const totalMinutes = incomplete.reduce((sum, t) => sum + (Number(t.estimatedTime) || 0), 0);
-            const hours = Math.floor(totalMinutes / 60);
-            const mins = totalMinutes % 60;
-            let timeHtml = '';
-            if (hours > 0) {
-                timeHtml = `${hours}<span class="text-lg font-bold ml-1 mr-2">時間</span>${mins > 0 ? `${mins}<span class="text-lg font-bold ml-1">分</span>` : ''}`;
-            } else {
-                timeHtml = `${mins}<span class="text-lg font-bold ml-1">分</span>`;
-            }
-            document.getElementById('remaining-time-display').innerHTML = timeHtml;
-
-            // 未完了・完了数をダッシュボードに反映
-            const incompleteCountEl = document.getElementById('incomplete-count');
-            const completedCountEl = document.getElementById('completed-count');
-            if(incompleteCountEl) incompleteCountEl.innerText = incomplete.length;
-            if(completedCountEl) completedCountEl.innerText = completed.length;
-
-            // 科目ごとにタスクを分類
-            const tasksBySubject = {};
-            SUBJECTS.forEach(s => tasksBySubject[s] = []);
-            
-            dayTasks.forEach(t => {
-                if(tasksBySubject[t.subject]) tasksBySubject[t.subject].push(t);
-                else tasksBySubject['その他'].push(t);
-            });
-
-            let tasksHtml = '';
-            
-            SUBJECTS.forEach(s => {
-                const subTasks = tasksBySubject[s];
-                if(subTasks.length === 0) return;
-
-                // 未完了を上に、完了を下にソート
-                subTasks.sort((a, b) => (a.completed === b.completed) ? 0 : a.completed ? 1 : -1);
-
-                tasksHtml += `
-                    <div class="mb-6">
-                        <h3 class="font-bold text-gray-700 dark:text-gray-300 mb-3 flex items-center border-b border-gray-200 dark:border-gray-700 pb-2 ml-1">
-                            <span class="${SUBJECT_COLORS[s]} px-2.5 py-0.5 rounded-md text-[10px] mr-2 shadow-sm">${s}</span>
-                            <span class="text-sm">タスク一覧</span>
-                        </h3>
-                        <div class="space-y-3">
-                            ${subTasks.map(t => createTaskHTML(t, true)).join('')}
-                        </div>
-                    </div>
-                `;
-            });
-
-            const container = document.getElementById('dashboard-tasks-container');
-            if (container) {
-                if (tasksHtml === '') {
-                    container.innerHTML = '<p class="text-sm font-medium text-gray-400 dark:text-gray-500 text-center py-6 bg-white dark:bg-gray-800 rounded-2xl border border-dashed border-gray-200 dark:border-gray-700">今日のタスクはありません</p>';
-                } else {
-                    container.innerHTML = tasksHtml;
-                }
-            }
-        }
-
-        async function saveNewTask() {
-            if(!currentUser) return;
-            const title = document.getElementById('input-task-title').value.trim();
-            if(!title) return alert("タスク名を入力してください");
-            document.getElementById('input-task-title').value = ''; window.closeModal('modal-add-task');
-            await addDoc(getCollectionRef('tasks'), {
-                date: getActiveDateStr(), title, subject: document.getElementById('input-task-subject').value,
-                estimatedTime: parseInt(document.getElementById('input-task-time').value) || 0,
-                actualTime: 0, completed: false, createdAt: new Date().toISOString()
-            });
-        }
-
-        async function toggleTaskComplete(id, checked) { 
-            if (checked) {
-                const colors = ['#f472b6', '#c084fc', '#fb7185']; 
-                confetti({ particleCount: 80, spread: 60, origin: { y: 0.6 }, colors: colors, disableForReducedMotion: true });
-            }
-            await updateDoc(getDocRef('tasks', id), { completed: checked }); 
-        }
-
-        function openTaskDetailModal(id) {
+        window.openTaskDetailModal = function(id) {
             const t = tasks.find(x => x.id === id); if(!t) return;
             document.getElementById('detail-title').innerText = t.title;
             document.getElementById('detail-subject').innerText = t.subject;
@@ -1188,7 +1396,7 @@
             document.getElementById('modal-task-detail').classList.add('active');
         }
 
-        async function saveTaskDetail() {
+        window.saveTaskDetail = async function() {
             const id = document.getElementById('detail-task-id').value;
             const t = tasks.find(x => x.id === id);
             const isDetailedMode = !document.getElementById('sub-evaluations-section').classList.contains('hidden');
@@ -1229,10 +1437,131 @@
                 }
             }
         }
-        
-        async function deleteTask() { if(confirm("削除しますか？")) { await deleteDoc(getDocRef('tasks', document.getElementById('detail-task-id').value)); window.closeModal('modal-task-detail'); } }
 
-        function changeMonth(offset) { calendarMonthObj.setDate(1); calendarMonthObj.setMonth(calendarMonthObj.getMonth() + offset); renderCalendar(); }
+        window.toggleTaskComplete = async function(id, checked) { 
+            if (checked) {
+                const colors = ['#f472b6', '#c084fc', '#fb7185']; 
+                confetti({ particleCount: 80, spread: 60, origin: { y: 0.6 }, colors: colors, disableForReducedMotion: true });
+            }
+            await updateDoc(getDocRef('tasks', id), { completed: checked }); 
+        }
+
+        window.saveNewTask = async function() {
+            if(!currentUser) return;
+            const title = document.getElementById('input-task-title').value.trim();
+            if(!title) return alert("タスク名を入力してください");
+            document.getElementById('input-task-title').value = ''; window.closeModal('modal-add-task');
+            await addDoc(getCollectionRef('tasks'), {
+                date: getActiveDateStr(), title, subject: document.getElementById('input-task-subject').value,
+                estimatedTime: parseInt(document.getElementById('input-task-time').value) || 0,
+                actualTime: 0, completed: false, createdAt: new Date().toISOString()
+            });
+        }
+
+        window.deleteTask = async function() { if(confirm("削除しますか？")) { await deleteDoc(getDocRef('tasks', document.getElementById('detail-task-id').value)); window.closeModal('modal-task-detail'); } }
+        window.saveNewRoutine = async function() {
+            const title = document.getElementById('input-routine-title').value; if(!title) return;
+            document.getElementById('input-routine-title').value = ''; window.closeModal('modal-add-routine');
+            await addDoc(getCollectionRef('routines'), { title, subject: document.getElementById('input-routine-subject').value, estimatedTime: parseInt(document.getElementById('input-routine-time').value)||0, createdAt: new Date().toISOString() });
+        }
+        window.deleteRoutine = async function(id) { if(confirm("削除しますか？")) await deleteDoc(getDocRef('routines', id)); }
+
+        function createTaskHTML(t, hideSubjectBadge = false) {
+            let detailBadge = '';
+            if (t.subEvaluations && t.subEvaluations.length > 0) {
+                detailBadge = `<span class="ml-2 bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-300 px-1.5 py-0.5 rounded-md font-bold border border-purple-100 dark:border-purple-800">問題別記録あり</span>`;
+            }
+            const subjectBadge = hideSubjectBadge ? '' : `<span class="text-[10px] px-2.5 py-1 rounded-full font-bold ${SUBJECT_COLORS[t.subject] || SUBJECT_COLORS['その他']}">${escapeHTML(t.subject)}</span>`;
+
+            return `
+                <div class="flex items-center bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-sm hover:shadow-md transition-all border border-gray-50 dark:border-gray-700 relative overflow-hidden mb-3">
+                    ${t.isReview ? '<div class="absolute left-0 top-0 bottom-0 w-1.5 bg-orange-400"></div>' : ''}
+                    <input type="checkbox" ${t.completed ? 'checked' : ''} class="w-6 h-6 text-pink-500 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-pink-500 mr-4 flex-shrink-0 transition-colors" onchange="toggleTaskComplete('${t.id}', this.checked)">
+                    <div class="flex-grow cursor-pointer truncate" onclick="openTaskDetailModal('${t.id}')">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="${t.completed ? 'line-through text-gray-400 dark:text-gray-500' : 'text-gray-800 dark:text-gray-100'} font-bold text-base truncate mr-2 tracking-wide">${escapeHTML(t.title)}</span>
+                            ${subjectBadge}
+                        </div>
+                        <div class="text-[11px] text-gray-500 dark:text-gray-400 font-medium flex items-center mt-1.5">
+                            <i class="far fa-clock mr-1"></i> ${formatTime(t.estimatedTime)}
+                            ${t.isReview ? '<span class="text-orange-500 dark:text-orange-400 ml-2 bg-orange-50 dark:bg-orange-900/30 px-1.5 py-0.5 rounded-md"><i class="fas fa-redo-alt mr-1"></i>復習</span>' : ''}
+                            ${t.completed && t.evaluation ? `<span class="ml-2 bg-pink-50 dark:bg-pink-900/30 text-pink-600 dark:text-pink-300 px-1.5 py-0.5 rounded-md font-bold border border-pink-100 dark:border-pink-800">評${t.evaluation}</span>` : ''}
+                            ${detailBadge}
+                        </div>
+                    </div>
+                </div>`;
+        }
+
+        function renderDashboard() {
+            const todayStr = formatDate(new Date());
+            const dayTasks = tasks.filter(t => t.date === todayStr);
+            const incomplete = dayTasks.filter(t => !t.completed);
+            const completed = dayTasks.filter(t => t.completed);
+
+            const todayDate = new Date();
+            const m = todayDate.getMonth() + 1;
+            const d = todayDate.getDate();
+            const days = ['日', '月', '火', '水', '木', '金', '土'];
+            document.getElementById('current-date-display').innerText = `${m}月${d}日(${days[todayDate.getDay()]}) のタスク`;
+
+            displayDailyQuote();
+
+            const totalMinutes = incomplete.reduce((sum, t) => sum + (Number(t.estimatedTime) || 0), 0);
+            const hours = Math.floor(totalMinutes / 60);
+            const mins = totalMinutes % 60;
+            let timeHtml = '';
+            if (hours > 0) {
+                timeHtml = `${hours}<span class="text-lg font-bold ml-1 mr-2">時間</span>${mins > 0 ? `${mins}<span class="text-lg font-bold ml-1">分</span>` : ''}`;
+            } else {
+                timeHtml = `${mins}<span class="text-lg font-bold ml-1">分</span>`;
+            }
+            document.getElementById('remaining-time-display').innerHTML = timeHtml;
+
+            const incompleteCountEl = document.getElementById('incomplete-count');
+            const completedCountEl = document.getElementById('completed-count');
+            if(incompleteCountEl) incompleteCountEl.innerText = incomplete.length;
+            if(completedCountEl) completedCountEl.innerText = completed.length;
+
+            const tasksBySubject = {};
+            SUBJECTS.forEach(s => tasksBySubject[s] = []);
+            
+            dayTasks.forEach(t => {
+                if(tasksBySubject[t.subject]) tasksBySubject[t.subject].push(t);
+                else tasksBySubject['その他'].push(t);
+            });
+
+            let tasksHtml = '';
+            
+            SUBJECTS.forEach(s => {
+                const subTasks = tasksBySubject[s];
+                if(subTasks.length === 0) return;
+
+                subTasks.sort((a, b) => (a.completed === b.completed) ? 0 : a.completed ? 1 : -1);
+
+                tasksHtml += `
+                    <div class="mb-6">
+                        <h3 class="font-bold text-gray-700 dark:text-gray-300 mb-3 flex items-center border-b border-gray-200 dark:border-gray-700 pb-2 ml-1">
+                            <span class="${SUBJECT_COLORS[s]} px-2.5 py-0.5 rounded-md text-[10px] mr-2 shadow-sm">${s}</span>
+                            <span class="text-sm">タスク一覧</span>
+                        </h3>
+                        <div class="space-y-3">
+                            ${subTasks.map(t => createTaskHTML(t, true)).join('')}
+                        </div>
+                    </div>
+                `;
+            });
+
+            const container = document.getElementById('dashboard-tasks-container');
+            if (container) {
+                if (tasksHtml === '') {
+                    container.innerHTML = '<p class="text-sm font-medium text-gray-400 dark:text-gray-500 text-center py-6 bg-white dark:bg-gray-800 rounded-2xl border border-dashed border-gray-200 dark:border-gray-700">今日のタスクはありません</p>';
+                } else {
+                    container.innerHTML = tasksHtml;
+                }
+            }
+        }
+
+        window.changeMonth = function(offset) { calendarMonthObj.setDate(1); calendarMonthObj.setMonth(calendarMonthObj.getMonth() + offset); renderCalendar(); }
         function renderCalendar() {
             const y = calendarMonthObj.getFullYear(), m = calendarMonthObj.getMonth();
             document.getElementById('calendar-month-display').innerText = `${y}年 ${m + 1}月`;
@@ -1252,6 +1581,8 @@
             }
         }
         
+        window.selectCalendarDate = async function(dateStr) { calendarSelectedDateStr = dateStr; await checkAndApplyRoutines(calendarSelectedDateStr); renderCalendar(); renderCalendarTasks(); };
+
         function renderCalendarTasks() {
             const parts = calendarSelectedDateStr.split('-');
             document.getElementById('calendar-selected-date-display').innerHTML = `${parseInt(parts[1])}月${parseInt(parts[2])}日の記録 <span class="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs px-3 py-1 rounded-full font-medium" id="calendar-task-count">0</span>`;
@@ -1270,7 +1601,6 @@
 
             const completed = dayTasks.filter(t => t.completed);
             
-            // 🌟 総勉強時間の計算とサマリーカードの表示
             const totalActualTime = completed.reduce((sum, t) => sum + (Number(t.actualTime) || 0), 0);
             
             summaryContainer.innerHTML = `
@@ -1291,7 +1621,6 @@
             const normalTasks = dayTasks.filter(t => !t.isReview);
             const reviewTasks = dayTasks.filter(t => t.isReview);
 
-            // 🌟 通常タスクの表示 (科目ごと)
             if (normalTasks.length > 0) {
                 html += `<h4 class="text-sm font-bold text-gray-700 dark:text-gray-300 mt-6 mb-3 ml-1 flex items-center border-b border-gray-200 dark:border-gray-700 pb-2"><i class="fas fa-book-open text-blue-500 mr-2"></i>通常タスク</h4>`;
                 
@@ -1321,7 +1650,6 @@
                 });
             }
 
-            // 🌟 復習タスクの表示 (元の評価ごと)
             if (reviewTasks.length > 0) {
                 html += `<h4 class="text-sm font-bold text-gray-700 dark:text-gray-300 mt-6 mb-3 ml-1 flex items-center border-b border-gray-200 dark:border-gray-700 pb-2"><i class="fas fa-redo-alt text-orange-500 mr-2"></i>復習タスク</h4>`;
                 
@@ -1332,7 +1660,6 @@
                 evals.forEach(e => tasksByEval[e] = []);
 
                 reviewTasks.forEach(t => {
-                    // タスク名に含まれる「評A」などの文字から元の評価を判定
                     const match = t.title.match(/評([A-D])/);
                     const evalRank = match ? match[1] : '未分類';
                     tasksByEval[evalRank].push(t);
@@ -1360,7 +1687,6 @@
             container.innerHTML = html;
         }
 
-        // 🌟 追加: 完了したタスクの振り返り用詳細HTMLを生成する関数
         function createCompletedTaskReviewHTML(t) {
             let subEvalsHtml = '';
             if (t.subEvaluations && t.subEvaluations.length > 0) {
@@ -1413,8 +1739,6 @@
             `;
         }
 
-        window.selectCalendarDate = async (dateStr) => { calendarSelectedDateStr = dateStr; await checkAndApplyRoutines(calendarSelectedDateStr); renderCalendar(); renderCalendarTasks(); };
-
         window.updateChartColors = function() {
             const isDark = document.documentElement.classList.contains('dark');
             Chart.defaults.color = isDark ? '#9CA3AF' : '#6B7280'; 
@@ -1431,7 +1755,6 @@
 
             const bgColors = ['#F472B6', '#C084FC', '#FB7185', '#34D399', '#FBBF24', '#818CF8', '#9CA3AF'];
             
-            // 🌟 変更: 詳細配点（共通テスト・2次）から大科目への合算
             const targetWeights = [];
             const actualTimes = [];
             let totalWeight = 0;
@@ -1449,7 +1772,6 @@
                 targetWeightsMap['社会'] = (parseInt(cs['社会1_score'])||0) + (parseInt(cs['社会2_score'])||0) + (parseInt(ss['社会1_score'])||0) + (parseInt(ss['社会2_score'])||0);
                 targetWeightsMap['理科'] = (parseInt(cs['理科1_score'])||0) + (parseInt(cs['理科2_score'])||0) + (parseInt(ss['理科1_score'])||0) + (parseInt(ss['理科2_score'])||0);
             } else if (userProfile.weights) {
-                // 古いデータとの互換性
                 SUBJECTS.forEach(s => targetWeightsMap[s] = parseInt(userProfile.weights[s]) || 0);
             }
 
@@ -1491,9 +1813,7 @@
             window.updateChartColors();
         }
 
-        // 🌟 追加: プロフィール（配点）関連の処理
         function renderSettings() {
-            // プロフィール情報の反映
             document.getElementById('setting-univ').value = userProfile.targetUniv || '';
             document.getElementById('setting-fac').value = userProfile.targetFaculty || '';
             
@@ -1521,11 +1841,8 @@
                     const subEl = document.getElementById(`s-${key}-sub`); if(subEl) subEl.value = ss[`${k}_sub`] || '';
                     const scoreEl = document.getElementById(`s-${key}-score`); if(scoreEl) scoreEl.value = ss[`${k}_score`] || '';
                 });
-            } else if (userProfile.weights) {
-                // 古いフォーマットからの移行措置等は省略（新規入力推奨）
             }
 
-            // ルーティンの反映
             document.getElementById('routine-list').innerHTML = routines.map(r => `
                 <li class="flex justify-between items-center bg-gray-50 dark:bg-gray-700/50 p-4 rounded-2xl mb-3 border border-gray-100 dark:border-gray-700 transition-colors">
                     <div>
@@ -1539,156 +1856,6 @@
                 </li>
             `).join('');
         }
-
-        window.saveUserProfile = async () => {
-            if(!currentUser) return;
-            const targetUniv = document.getElementById('setting-univ').value.trim();
-            const targetFaculty = document.getElementById('setting-fac').value.trim();
-            
-            const examScores = {
-                courseType: document.getElementById('setting-course-type').value,
-                common: {
-                    '国語': document.getElementById('c-国語').value,
-                    '数学IA': document.getElementById('c-数学IA').value,
-                    '数学IIBC': document.getElementById('c-数学IIBC').value,
-                    '英語R': document.getElementById('c-英語R').value,
-                    '英語L': document.getElementById('c-英語L').value,
-                    '情報': document.getElementById('c-情報').value,
-                    '社会1_sub': document.getElementById('c-soc1-sub').value,
-                    '社会1_score': document.getElementById('c-soc1-score').value,
-                    '社会2_sub': document.getElementById('c-soc2-sub').value,
-                    '社会2_score': document.getElementById('c-soc2-score').value,
-                    '理科1_sub': document.getElementById('c-sci1-sub').value,
-                    '理科1_score': document.getElementById('c-sci1-score').value,
-                    '理科2_sub': document.getElementById('c-sci2-sub').value,
-                    '理科2_score': document.getElementById('c-sci2-score').value,
-                },
-                second: {
-                    '国語': document.getElementById('s-国語').value,
-                    '数学': document.getElementById('s-数学').value,
-                    '英語': document.getElementById('s-英語').value,
-                    '社会1_sub': document.getElementById('s-soc1-sub').value,
-                    '社会1_score': document.getElementById('s-soc1-score').value,
-                    '社会2_sub': document.getElementById('s-soc2-sub').value,
-                    '社会2_score': document.getElementById('s-soc2-score').value,
-                    '理科1_sub': document.getElementById('s-sci1-sub').value,
-                    '理科1_score': document.getElementById('s-sci1-score').value,
-                    '理科2_sub': document.getElementById('s-sci2-sub').value,
-                    '理科2_score': document.getElementById('s-sci2-score').value,
-                }
-            };
-            
-            try {
-                await setDoc(getDocRef('profile', 'data'), { targetUniv, targetFaculty, examScores, updatedAt: new Date().toISOString() }, { merge: true });
-                alert("志望校と配点情報を保存しました！");
-            } catch(e) { console.error(e); alert("保存に失敗しました。"); }
-        };
-
-        // 🌟 追加: Gemini APIを用いた配点自動検索機能
-        window.autoFetchWeights = async () => {
-            const univ = document.getElementById('setting-univ').value.trim();
-            const fac = document.getElementById('setting-fac').value.trim();
-            if (!univ) return alert("大学名を入力してください。");
-
-            const btn = document.getElementById('btn-auto-fetch');
-            const originalHTML = btn.innerHTML;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> 検索中... (数秒かかります)';
-            btn.disabled = true;
-
-            try {
-                // 指数バックオフによるリトライ処理を含むFetch
-                const payload = {
-                    contents: [{ parts: [{ text: `${univ} ${fac} の一般入試（共通テストと2次試験）の配点を調べ、共通テスト（国語、数学IA、数学IIBC、英語R、英語L、情報、社会1、社会2、理科1、理科2）と2次試験（国語、数学、英語、社会1、社会2、理科1、理科2）の詳細な科目ごとの配点を数値で返してください。社会と理科は具体的な科目名（日本史、物理など）も設定してください。不要な科目は空文字や0にしてください。` }] }],
-                    systemInstruction: { parts: [{ text: "あなたは大学受験の専門家です。最新の入試配点情報を検索し、JSON形式で出力してください。" }] },
-                    tools: [{ google_search: {} }],
-                    generationConfig: {
-                        responseMimeType: "application/json",
-                        responseSchema: {
-                            type: "OBJECT",
-                            properties: {
-                                "common": {
-                                    type: "OBJECT",
-                                    properties: {
-                                        "国語": { type: "INTEGER" }, "数学IA": { type: "INTEGER" }, "数学IIBC": { type: "INTEGER" }, "英語R": { type: "INTEGER" }, "英語L": { type: "INTEGER" }, "情報": { type: "INTEGER" },
-                                        "社会1_sub": { type: "STRING" }, "社会1_score": { type: "INTEGER" },
-                                        "社会2_sub": { type: "STRING" }, "社会2_score": { type: "INTEGER" },
-                                        "理科1_sub": { type: "STRING" }, "理科1_score": { type: "INTEGER" },
-                                        "理科2_sub": { type: "STRING" }, "理科2_score": { type: "INTEGER" }
-                                    }
-                                },
-                                "second": {
-                                    type: "OBJECT",
-                                    properties: {
-                                        "国語": { type: "INTEGER" }, "数学": { type: "INTEGER" }, "英語": { type: "INTEGER" },
-                                        "社会1_sub": { type: "STRING" }, "社会1_score": { type: "INTEGER" },
-                                        "社会2_sub": { type: "STRING" }, "社会2_score": { type: "INTEGER" },
-                                        "理科1_sub": { type: "STRING" }, "理科1_score": { type: "INTEGER" },
-                                        "理科2_sub": { type: "STRING" }, "理科2_score": { type: "INTEGER" }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                };
-                
-                let data = null;
-                const delays = [1000, 2000, 4000, 8000];
-                for (let i = 0; i < 5; i++) {
-                    try {
-                        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
-                            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
-                        });
-                        if (res.ok) { data = await res.json(); break; }
-                        if (i === 4) throw new Error("API Fetch failed");
-                    } catch (e) {
-                        if (i === 4) throw e;
-                    }
-                    await new Promise(r => setTimeout(r, delays[i]));
-                }
-
-                const textStr = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-                if (!textStr) throw new Error("No data extracted");
-                
-                const resObj = JSON.parse(textStr);
-                const cs = resObj.common || {};
-                const ss = resObj.second || {};
-
-                ['国語', '数学IA', '数学IIBC', '英語R', '英語L', '情報'].forEach(s => {
-                    const el = document.getElementById(`c-${s}`); if(el && cs[s] !== undefined) el.value = cs[s];
-                });
-                ['soc1', 'soc2', 'sci1', 'sci2'].forEach(key => {
-                    const k = key==='soc1'?'社会1':key==='soc2'?'社会2':key==='sci1'?'理科1':'理科2';
-                    const subEl = document.getElementById(`c-${key}-sub`); if(subEl && cs[`${k}_sub`]) subEl.value = cs[`${k}_sub`];
-                    const scoreEl = document.getElementById(`c-${key}-score`); if(scoreEl && cs[`${k}_score`] !== undefined) scoreEl.value = cs[`${k}_score`];
-                });
-
-                ['国語', '数学', '英語'].forEach(s => {
-                    const el = document.getElementById(`s-${s}`); if(el && ss[s] !== undefined) el.value = ss[s];
-                });
-                ['soc1', 'soc2', 'sci1', 'sci2'].forEach(key => {
-                    const k = key==='soc1'?'社会1':key==='soc2'?'社会2':key==='sci1'?'理科1':'理科2';
-                    const subEl = document.getElementById(`s-${key}-sub`); if(subEl && ss[`${k}_sub`]) subEl.value = ss[`${k}_sub`];
-                    const scoreEl = document.getElementById(`s-${key}-score`); if(scoreEl && ss[`${k}_score`] !== undefined) scoreEl.value = ss[`${k}_score`];
-                });
-                
-                alert("配点情報を取得しました！内容が正しいか確認し、保存ボタンを押してください。");
-
-            } catch(e) {
-                console.error(e);
-                alert("情報の取得に失敗しました。手動で入力をお願いします。");
-            } finally {
-                btn.innerHTML = originalHTML;
-                btn.disabled = false;
-            }
-        };
-
-        async function saveNewRoutine() {
-            const title = document.getElementById('input-routine-title').value; if(!title) return;
-            document.getElementById('input-routine-title').value = ''; window.closeModal('modal-add-routine');
-            await addDoc(getCollectionRef('routines'), { title, subject: document.getElementById('input-routine-subject').value, estimatedTime: parseInt(document.getElementById('input-routine-time').value)||0, createdAt: new Date().toISOString() });
-        }
-        async function deleteRoutine(id) { if(confirm("削除しますか？")) await deleteDoc(getDocRef('routines', id)); }
-
     </script>
 </body>
 </html>
