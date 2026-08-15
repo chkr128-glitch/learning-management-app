@@ -8,6 +8,9 @@
     <!-- ホーム画面ショートカット用のアプリアイコン設定 -->
     <link rel="icon" type="image/png" href="icon.png">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    
+    <link rel="manifest" href="manifest.json">
+    
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="StudyLoop">
@@ -2036,6 +2039,17 @@
                 btn.disabled = false;
             }
         };
+
+        // 🌟 ここを追加: Service Worker（オフライン機能）の登録
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('./service-worker.js').then(function(registration) {
+                    console.log('ServiceWorker の登録が成功しました');
+                }, function(err) {
+                    console.log('ServiceWorker の登録に失敗しました: ', err);
+                });
+            });
+        }
     </script>
 </body>
 </html>
